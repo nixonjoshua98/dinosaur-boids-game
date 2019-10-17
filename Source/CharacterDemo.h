@@ -35,7 +35,12 @@ class Scene;
 class Character;
 class Touch;
 
+#include <memory>
+
 #include "JN_ObjectFactory.h"
+#include "BoidSet.h"
+
+#include "InterfaceFactory.h"
 
 /// Moving character example.
 /// This sample demonstrates:
@@ -50,16 +55,12 @@ class CharacterDemo : public Sample
     URHO3D_OBJECT(CharacterDemo, Sample);
 
 public:
-    /// Construct.
     CharacterDemo(Context* context);
-    /// Destruct.
     ~CharacterDemo();
 
-    /// Setup after engine initialization and before running the main loop.
     virtual void Start();
 
 protected:
-    /// Return XML patch instructions for screen joystick layout for a specific sample app, if any.
     virtual String GetScreenJoystickPatchString() const { return
         "<patch>"
         "    <add sel=\"/element\">"
@@ -106,28 +107,25 @@ protected:
     }
 
 private:
-    /// Create static scene content.
     void CreateScene();
-    /// Create controllable character.
     void CreateCharacter();
-    /// Construct an instruction text to the UI.
-    void CreateInstructions();
-    /// Subscribe to necessary events.
+	void CreatePauseMenu();
+
     void SubscribeToEvents();
-    /// Handle application update. Set controls to character.
-    void HandleUpdate(StringHash eventType, VariantMap& eventData);
-    /// Handle application post-update. Update camera position after character has moved.
+
+	void HandleUpdate(StringHash eventType, VariantMap& eventData);
     void HandlePostUpdate(StringHash eventType, VariantMap& eventData);
 
+	std::unique_ptr<InterfaceFactory> uiFactory;
 
-
-	void CreatePauseMenu();
 	void UpdateFPS(float);
 	void TogglePauseMenu();
 	void UpdateCamera();
 
 	void SaveScene();
 	void LoadScene();
+
+	BoidSet boidSet;
 
 	void HandleKeyUp(StringHash eventType, VariantMap& eventData);
 
@@ -139,6 +137,8 @@ private:
 
 	Text* FPSText;
 	Text* controlText;
+
+	float TEMP_DELTA_VAR;
 
 	const String controlsString = (
 		"WASD - Move\n"

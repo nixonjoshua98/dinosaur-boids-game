@@ -37,11 +37,6 @@ void JN_ObjectFactory::SetScene(Scene* s)
 	scene = s;
 }
 
-void JN_ObjectFactory::SetRoot(UIElement* r)
-{
-	root = r;
-}
-
 Character* JN_ObjectFactory::CreateCharacter(String name, Vector3 pos)
 {
 	Node* objectNode = scene->CreateChild(name);
@@ -138,18 +133,6 @@ void JN_ObjectFactory::CreateBox(Vector3 pos, Quaternion rotation, float scale)
 	CollisionShape* shape = node->CreateComponent<CollisionShape>();
 
 	shape->SetBox(Vector3::ONE);
-}
-
-void JN_ObjectFactory::CreateText(Text*& txt, HorizontalAlignment allignment, String name, String font, int size, Vector2 pos, bool isVisible)
-{
-	txt = root->CreateChild<Text>(name);
-
-	txt->SetFont(cache->GetResource<Font>(font), size);
-	txt->SetTextAlignment(HA_LEFT);
-	txt->SetHorizontalAlignment(allignment);
-	txt->SetVerticalAlignment(VA_TOP);
-	txt->SetPosition(pos.x_, pos.y_);
-	txt->SetVisible(isVisible);
 }
 
 Node* JN_ObjectFactory::CreateObject(String name, String model, String mat, 
