@@ -27,7 +27,7 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	rigidBody = node->CreateComponent<RigidBody>();
 	collisionShape = node->CreateComponent<CollisionShape>();
 
-	staticModel->SetModel(cache->GetResource<Model>("Models/Cone.mdl"));
+	staticModel->SetModel(cache->GetResource<Model>("Models/Dinosaur.mdl"));
 
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
@@ -43,7 +43,7 @@ void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
 	Vector3 avgVelocity;
 	Vector3 sepV;
 
-	force = Vector3(0, 0, 0);	// Set the force member variable to zero
+	force = Vector3(0, 0, 0);		// Set the force member variable to zero
 
 	DebugRenderer* debugRenderer = node->GetScene()->GetComponent<DebugRenderer>();
 
@@ -80,14 +80,12 @@ void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
 		CoM /= n;
 		avgVelocity /= n;
 
-		Vector3 dir = (CoM - GetPosition()).Normalized();
-
+		Vector3 dir = (CoM - GetPosition()).Normalized();		  
 		Vector3 vDesired = dir * FAttract_Vmax;
 
-		Vector3 attractive = (vDesired - GetLinearVelocity()) * FAttract_Factor;
-
-		Vector3 allignment = (avgVelocity - GetLinearVelocity()) * FAlign_Factor;
-
+		// Forces
+		Vector3 attractive = (vDesired - GetLinearVelocity()) * FAttract_Factor;  
+		Vector3 allignment = (avgVelocity - GetLinearVelocity()) * FAlign_Factor;		
 		Vector3 repel = sepV * FRepel_Factor;
 
 		force += (attractive + allignment + repel);
@@ -98,17 +96,19 @@ void Boid::Update(float tm)
 {
 	rigidBody->ApplyForce(force);
 
-	Vector3 vel = rigidBody->GetLinearVelocity();
+	Vector3 vel = GetLinearVelocity();
 
 	float d = Clamp(vel.Length(), 10.0f, 50.0f);
 
 	rigidBody->SetLinearVelocity(vel.Normalized() * d);
 
-	Vector3 vn = vel.Normalized();
-	Vector3 cp = -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
-	float	dp = cp.DotProduct(vn);
+	Vector3 vn		= vel.Normalized();
 
-	rigidBody->SetRotation(Quaternion(Acos(dp), cp));
+	Vector3 cp		= -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
+
+	float	dp			= cp.DotProduct(vn);
+
+	//rigidBody->SetRotation(Quaternion(Acos(dp), cp));
 
 	Vector3 currentPos = GetPosition();
 
