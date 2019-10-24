@@ -19,7 +19,7 @@ void BoidSet::Update(float tm)
 {
 	for (int i = 0; i < NUM_BOIDS; i++)
 	{
-		boidArray[i].ComputeForce(&boidArray[0], i == 0);
+		boidArray[i].ComputeForce(&boidArray[0], NUM_BOIDS, i == 0);
 
 		boidArray[i].Update(tm);
 	}

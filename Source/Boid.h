@@ -21,7 +21,7 @@ public:
 	void Initialise(ResourceCache*, Scene*);
 	void CreateComponents(ResourceCache*, Scene*);
 
-	void ComputeForce(Boid*, bool = false);
+	void ComputeForce(Boid*, int, bool = false);
 	void Update(float);
 
 	Vector3 GetPosition()		{ return rigidBody->GetPosition();       }

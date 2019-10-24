@@ -1,9 +1,13 @@
 #include <Urho3D/Graphics/DebugRenderer.h>
 
+#include <Urho3D/UI/Button.h>
+#include <Urho3D/UI/UIEvents.h>
+
 #include "UrhoHeaders.h"
 #include "Character.h"
-#include "CharacterDemo.h"
 #include "Touch.h"
+
+#include "CharacterDemo.h"
 
 URHO3D_DEFINE_APPLICATION_MAIN(CharacterDemo)
 
@@ -13,7 +17,11 @@ CharacterDemo::CharacterDemo(Context* context) :
 {
 	Character::RegisterObject(context);
 
-	uiFactory = std::make_unique<InterfaceFactory>(GetSubsystem<UI>(), GetSubsystem<ResourceCache>());
+	pauseMenu = std::make_unique<PauseMenu>(GetSubsystem<UI>(), GetSubsystem<ResourceCache>());
+
+	AllocConsole();
+
+	freopen("CONOUT$", "w", stdout);
 }
 
 CharacterDemo::~CharacterDemo()
@@ -27,17 +35,20 @@ void CharacterDemo::Start()
 
 	CreateScene();
 	CreateCharacter();
-	CreatePauseMenu();
 
 	boidSet.Initialise(GetSubsystem<ResourceCache>(), scene_);
 
 	SubscribeToEvents();
+
+	GetSubsystem<Input>()->SetMouseVisible(true);
 
 	Sample::InitMouseMode(MM_RELATIVE);
 }
 
 void CharacterDemo::CreateScene()
 {
+	pauseMenu->Create();
+
 	scene_ = factory.CreateScene(context_);
 
 	factory.SetScene(scene_);
@@ -65,10 +76,12 @@ void CharacterDemo::CreateCharacter()
 
 void CharacterDemo::SubscribeToEvents()
 {
-	SubscribeToEvent(E_KEYUP, URHO3D_HANDLER(CharacterDemo, HandleKeyUp));
+	SubscribeToEvent(E_KEYUP,		URHO3D_HANDLER(CharacterDemo, HandleKeyUp));
+	SubscribeToEvent(E_UPDATE,		URHO3D_HANDLER(CharacterDemo, HandleUpdate));
+	SubscribeToEvent(E_POSTUPDATE,	URHO3D_HANDLER(CharacterDemo, HandlePostUpdate));
 
-	SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(CharacterDemo, HandleUpdate));
-	SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(CharacterDemo, HandlePostUpdate));
+	SubscribeToEvent(pauseMenu->GetContinueButton(),	E_RELEASED, URHO3D_HANDLER(CharacterDemo, OnContinueButtonDown));
+	SubscribeToEvent(pauseMenu->GetQuitButton(),		E_RELEASED, URHO3D_HANDLER(CharacterDemo, OnQuitButtonDown));
 
 	UnsubscribeFromEvent(E_SCENEUPDATE);
 }
@@ -101,10 +114,55 @@ void CharacterDemo::HandlePostUpdate(StringHash eventType, VariantMap& eventData
 	UpdateCamera();
 }
 
-void CharacterDemo::CreatePauseMenu()
+void CharacterDemo::HandleKeyUp(StringHash eventType, VariantMap& eventData)
 {
-	uiFactory->CreateText(		FPSText,	HA_RIGHT,		"FPSText", "Fonts/Anonymous Pro.ttf", 15, {0, 0 });
-	uiFactory->CreateText(	controlText,	HA_LEFT,	"ControlText", "Fonts/Anonymous Pro.ttf", 15, {0, 0 }, controlsString);
+	int key = eventData[KeyUp::P_KEY].GetInt();
+
+	switch (key)
+	{
+	case KEY_F1:
+		firstPerson_ = !firstPerson_;
+		break;
+
+	case KEY_F5:
+		SaveScene();
+		break;
+
+	case KEY_F7:
+		LoadScene();
+		break;
+
+	case KEY_F11:
+		GetSubsystem<Graphics>()->ToggleFullscreen();
+		break;
+
+	case KEY_ESCAPE:
+		TogglePauseMenu();
+		break;
+	}
+}
+
+void CharacterDemo::OnContinueButtonDown(StringHash eventType, VariantMap& eventData)
+{
+	TogglePauseMenu();
+}
+
+void CharacterDemo::OnQuitButtonDown(StringHash eventType, VariantMap& eventData)
+{
+	GetSubsystem<Console>()->SetVisible(false);
+
+	engine_->Exit();
+}
+
+void CharacterDemo::TogglePauseMenu()
+{
+	Input* input = GetSubsystem<Input>();
+
+	pauseMenu->Toggle();
+
+	input->SetMouseMode(pauseMenu->IsShown() ? MM_ABSOLUTE : MM_RELATIVE);
+
+	input->SetMousePosition({ 1024 / 2, 768 / 2 });
 }
 
 void CharacterDemo::UpdateFPS(float delta)
@@ -113,22 +171,13 @@ void CharacterDemo::UpdateFPS(float delta)
 
 	fpsUpdateTimer -= delta;
 
-	if (fpsUpdateTimer >= 0.0f)
-		return;
+	if (fpsUpdateTimer >= 0.0f) return;
 
 	fpsUpdateTimer = 1.0f;
 
 	int fps = 1.0f / delta;
 
-	FPSText->SetText(String(fps));
-}
-
-void CharacterDemo::TogglePauseMenu()
-{
-	isPaused = !isPaused;
-
-	FPSText->SetVisible(isPaused);
-	controlText->SetVisible(isPaused);
+	pauseMenu->SetFPS(fps);
 }
 
 void CharacterDemo::UpdateCamera()
@@ -200,42 +249,10 @@ void CharacterDemo::SaveScene()
 void CharacterDemo::LoadScene()
 {
 	File loadFile(context_, GetSubsystem<FileSystem>()->GetProgramDir() + "Data/Scenes/CharacterDemo.xml", FILE_READ);
+
 	scene_->LoadXML(loadFile);
 
 	Node* characterNode = scene_->GetChild("Jack", true);
 	
 	character_ = characterNode->GetComponent<Character>();
-}
-
-void CharacterDemo::HandleKeyUp(StringHash eventType, VariantMap& eventData)
-{
-	int key = eventData[KeyUp::P_KEY].GetInt();
-
-	switch (key)
-	{
-	case KEY_F1:
-		firstPerson_ = !firstPerson_;
-		break;
-
-	case KEY_F3:
-		TogglePauseMenu();
-		break;
-
-	case KEY_F5:
-		SaveScene();
-		break;
-
-	case KEY_F7:
-		LoadScene();
-		break;
-
-	case KEY_F11:
-		GetSubsystem<Graphics>()->ToggleFullscreen();
-		break;
-
-	case KEY_ESCAPE:
-		GetSubsystem<Console>()->SetVisible(false);
-		engine_->Exit();
-		break;
-	}
 }

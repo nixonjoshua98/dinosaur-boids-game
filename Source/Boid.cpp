@@ -32,19 +32,19 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	rigidBody->SetLinearVelocity({ Random(-20.0f, 20.0f), 0.0f, Random(-20.0f, 20.0f) });
 }
 
-void Boid::ComputeForce(Boid* boidArray, bool debug)
+void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
 {
 	Vector3 CoM;				// Centre of mass, accumulated total
 	int n = 0;					// Count number of neigbours	
 
-	Vector3 totalVelocity;
+	Vector3 avgVelocity;
 
 	force = Vector3(0, 0, 0);	// Set the force member variable to zero
 
 	DebugRenderer* debugRenderer = node->GetScene()->GetComponent<DebugRenderer>();
 
 	// Search Neighbourhood
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < totalBoids; i++)
 	{
 		if (this == &boidArray[i])
 			continue;
@@ -58,31 +58,30 @@ void Boid::ComputeForce(Boid* boidArray, bool debug)
 		{
 			CoM += otherBoidPosition;
 
-			if (debug)
+			if (debug && debugRenderer)
 				debugRenderer->AddLine(GetPosition(), otherBoidPosition, Color(1, 1, 1, 1), false);
-
-			if (sep.Length() < Range_FAlign)
-				totalVelocity += boidArray[i].GetLinearVelocity();
 
 			n++;
 		}
+
+		if (sep.Length() < Range_FAlign)
+			avgVelocity += boidArray[i].GetLinearVelocity();
 	}
 
 	if (n > 0)
 	{
-		Vector3 averageCoM = CoM / n;
+		CoM /= n;
+		avgVelocity /= n;
 
-		Vector3 dir = (averageCoM - rigidBody->GetPosition()).Normalized();
+		Vector3 dir = (CoM - GetPosition()).Normalized();
 
 		Vector3 vDesired = dir * FAttract_Vmax;
 
-		Vector3 attractive = (vDesired - rigidBody->GetLinearVelocity()) * FAttract_Factor;
+		Vector3 attractive = (vDesired - GetLinearVelocity()) * FAttract_Factor;
 
-		Vector3 allignment = (totalVelocity / n) - GetLinearVelocity();
+		Vector3 allignment = avgVelocity - GetLinearVelocity();
 
-		Vector3 separation = GetPosition() - CoM / CoM.Length();
-
-		force += (attractive + allignment);// +separation);
+		force += (attractive + allignment);
 	}
 }
 

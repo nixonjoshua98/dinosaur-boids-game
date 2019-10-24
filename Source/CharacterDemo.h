@@ -26,30 +26,24 @@
 
 namespace Urho3D
 {
-
-class Node;
-class Scene;
-
+	class Node;
+	class Scene;
 }
 
 class Character;
 class Touch;
 
-#include <memory>
-
 #include "JN_ObjectFactory.h"
 #include "BoidSet.h"
 
-#include "InterfaceFactory.h"
+// Includes
+#include <memory>
+#include <iostream>
 
-/// Moving character example.
-/// This sample demonstrates:
-///     - Controlling a humanoid character through physics
-///     - Driving animations using the AnimationController component
-///     - Manual control of a bone scene node
-///     - Implementing 1st and 3rd person cameras, using raycasts to avoid the 3rd person camera clipping into scenery
-///     - Defining attributes of a custom component so that it can be saved and loaded
-///     - Using touch inputs/gyroscope for iOS/Android (implemented through an external file)
+#include "PauseMenu.h"
+// Includes
+
+
 class CharacterDemo : public Sample
 {
     URHO3D_OBJECT(CharacterDemo, Sample);
@@ -107,19 +101,28 @@ protected:
     }
 
 private:
+
+	SharedPtr<Touch> touch_;
+	WeakPtr<Character> character_;
+	bool firstPerson_;
+
     void CreateScene();
     void CreateCharacter();
-	void CreatePauseMenu();
 
     void SubscribeToEvents();
 
 	void HandleUpdate(StringHash eventType, VariantMap& eventData);
     void HandlePostUpdate(StringHash eventType, VariantMap& eventData);
+	void HandleKeyUp(StringHash eventType, VariantMap& eventData);
 
-	std::unique_ptr<InterfaceFactory> uiFactory;
+	void OnContinueButtonDown(StringHash eventType, VariantMap& eventData);
+	void OnQuitButtonDown(StringHash eventType, VariantMap& eventData);
+
+	void TogglePauseMenu();
+
+	std::unique_ptr<PauseMenu> pauseMenu;
 
 	void UpdateFPS(float);
-	void TogglePauseMenu();
 	void UpdateCamera();
 
 	void SaveScene();
@@ -127,34 +130,9 @@ private:
 
 	BoidSet boidSet;
 
-	void HandleKeyUp(StringHash eventType, VariantMap& eventData);
-
 	JN_ObjectFactory factory;
-
-	bool isPaused = false;
 
 	float fpsUpdateTimer = 1.0f;
 
-	Text* FPSText;
-	Text* controlText;
-
 	float TEMP_DELTA_VAR;
-
-	const String controlsString = (
-		"WASD - Move\n"
-		"F1   - Toggle camera\n"
-		"F3   - Pause\n"
-		"F5   - Save Scene\n"
-		"F7   - Load Scene\n"
-		"F11  - Fullscreen\n"
-		"Esc  - Exit"
-		);
-
-
-    /// Touch utility object.
-    SharedPtr<Touch> touch_;
-    /// The controllable character component.
-    WeakPtr<Character> character_;
-    /// First person camera flag.
-    bool firstPerson_;
 };
