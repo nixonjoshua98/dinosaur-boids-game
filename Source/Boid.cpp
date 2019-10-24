@@ -2,12 +2,15 @@
 #include "Boid.h"
 
 float Boid::Range_FAttract = 30.0f;
-float Boid::Range_FRepel = 20.0f;
-float Boid::Range_FAlign = 5.0f;
+
+float Boid::Range_FAlign = 3.0f;
+float Boid::FAlign_Factor = 2.0f;
+
 float Boid::FAttract_Vmax = 5.0f;
 float Boid::FAttract_Factor = 4.0f;
-float Boid::FRepel_Factor = 2.0f;
-float Boid::FAlign_Factor = 2.0f;
+
+float Boid::FRepel_Factor = 3.0f;
+float Boid::Range_FRepel = 20.0f;
 
 #include <Urho3D/Graphics/DebugRenderer.h>
 
@@ -38,6 +41,7 @@ void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
 	int n = 0;					// Count number of neigbours	
 
 	Vector3 avgVelocity;
+	Vector3 sepV;
 
 	force = Vector3(0, 0, 0);	// Set the force member variable to zero
 
@@ -51,7 +55,7 @@ void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
 
 		Vector3 otherBoidPosition = boidArray[i].GetPosition();
 
-		Vector3 sep = rigidBody->GetPosition() - otherBoidPosition;
+		Vector3 sep = GetPosition() - otherBoidPosition;
 
 		// Within range, so it is a neighbour
 		if (sep.Length() < Range_FAttract)
@@ -60,6 +64,9 @@ void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
 
 			if (debug && debugRenderer)
 				debugRenderer->AddLine(GetPosition(), otherBoidPosition, Color(1, 1, 1, 1), false);
+
+			if (sep.Length() < Range_FRepel)
+				sepV += sep.Normalized();
 
 			n++;
 		}
@@ -79,9 +86,11 @@ void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
 
 		Vector3 attractive = (vDesired - GetLinearVelocity()) * FAttract_Factor;
 
-		Vector3 allignment = avgVelocity - GetLinearVelocity();
+		Vector3 allignment = (avgVelocity - GetLinearVelocity()) * FAlign_Factor;
 
-		force += (attractive + allignment);
+		Vector3 repel = sepV * FRepel_Factor;
+
+		force += (attractive + allignment + repel);
 	}
 }
 
