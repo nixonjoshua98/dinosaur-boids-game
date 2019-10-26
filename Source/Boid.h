@@ -2,6 +2,7 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
 
 #include <Urho3D/Scene/Node.h>
 
@@ -21,8 +22,6 @@ using namespace Urho3D;
 class Boid
 {
 public:
-	Boid() {};
-	~Boid() {};
 
 	static float Range_FAttract;
 	static float Range_FRepel;

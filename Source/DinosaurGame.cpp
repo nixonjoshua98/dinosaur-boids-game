@@ -35,7 +35,10 @@
 
 #include "DinosaurGame.h"
 
-#define PRINT(x, y) std::cout << x << ", " << y <<"\n";
+// Temp
+#include "Boid.h"
+
+
 
 URHO3D_DEFINE_APPLICATION_MAIN(DinosaurGame)
 
@@ -86,9 +89,11 @@ void DinosaurGame::CreateScene()
 
 	GetSubsystem<Renderer>()->SetViewport(0, new Viewport(context_, scene_, camera));
 
+	scene_->CreateComponent<DebugRenderer>();
+
 	factory.CreateZone();
 	factory.CreateLight(LIGHT_DIRECTIONAL);
-	factory.CreateFloor(FLOOR_SIZE, FLOOR_SIZE);
+	factory.CreateFloor();
 
 	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
 }
@@ -119,11 +124,6 @@ void DinosaurGame::SubscribeToEvents()
 void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	Input* input = GetSubsystem<Input>();
-
-	scene_->RemoveComponent<DebugRenderer>();
-	scene_->CreateComponent<DebugRenderer>();
-
-	boidManager.SetDeltaTime(eventData[Update::P_TIMESTEP].GetFloat());
 	
 	character_->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
 	character_->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
@@ -135,6 +135,11 @@ void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	character_->controls_.pitch_ += (float)input->GetMouseMoveY() * YAW_SENSITIVITY;
 	character_->controls_.pitch_ = Clamp(character_->controls_.pitch_, -80.0f, 80.0f);
 	character_->GetNode()->SetRotation(Quaternion(character_->controls_.yaw_, Vector3::UP));
+
+	scene_->RemoveComponent<DebugRenderer>();
+	scene_->CreateComponent<DebugRenderer>();
+
+	boidManager.Update(eventData[Update::P_TIMESTEP].GetFloat());
 	
 	UpdatePauseMenuText(eventData[Update::P_TIMESTEP].GetFloat());
 }

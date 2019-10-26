@@ -13,6 +13,7 @@
 #include <iostream>
 
 #include "Boid.h"
+#include "Constants.h"
 
 float Boid::Range_FAttract = 30.0f;
 
@@ -43,7 +44,7 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
 
-	rigidBody->SetPosition({Random(-500.0f, 500.0f), 1.0f, Random(-500.0f, 500.0f) });
+	rigidBody->SetPosition({Random(-250.0f, 250.0f), 1.0f, Random(-250.0f, 250.0f) });
 
 	rigidBody->SetLinearVelocity({ Random(-20.0f, 20.0f), 0.0f, Random(-20.0f, 20.0f) });
 }
@@ -70,7 +71,7 @@ void Boid::Update(float tm)
 
 	Vector3 currentPos = GetPosition();
 
-	currentPos.y_ = 0.5f;
+	currentPos.y_ = 1.0f;
 
 	rigidBody->SetPosition(currentPos);
 }
@@ -87,12 +88,18 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 
 	Vector3 pos = GetPosition();
 
+	//auto r = node->GetScene()->GetComponent<DebugRenderer>();
+
 	for (unsigned int i = 0; i < boids.size(); i++)
 	{
 		Vector3 otherBoidPosition = boids[i]->GetPosition();
+		Vector3 otherBoidVelocity = boids[i]->GetLinearVelocity();
 
 		if (pos == otherBoidPosition)
 			continue;
+
+		//if ( i + 1 < boids.size())
+			//r->AddLine(boids[i]->GetPosition(), boids[i+1]->GetPosition(), { 1, 1, 1 }, false);
 		
 		Vector3 sep = pos - otherBoidPosition;
 
@@ -104,7 +111,7 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 		n++;
 		
 		if (sep.Length() < Range_FAlign)
-			avgVelocity += boids[i]->GetLinearVelocity();
+			avgVelocity += otherBoidVelocity;
 	}
 
 	CoM /= n;

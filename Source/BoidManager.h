@@ -31,9 +31,9 @@ public:
 	
 	void Initialise(ResourceCache*, Scene* scene);
 
-	void SetDeltaTime(float delta);
-
 	void Stop();
+
+	void Update(float);
 
 private:
 	Boid** boids;
@@ -43,17 +43,13 @@ private:
 	std::map< std::pair<int, int>, std::vector<Boid*> > boidNeighbourMap;
 
 	std::thread thread;
-	std::vector<std::thread> threads;
 
 	Scene* scene;
 
 	bool isRunning = true;
 
-	int currentFrame = -1;
-
 	float deltaTime = 0.0f;
 
-	void Update();
 	void UpdateThread();
 
 	void UpdateNeighbourMap();

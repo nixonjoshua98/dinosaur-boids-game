@@ -20,6 +20,7 @@
 
 #include "_ObjectFactory.h"
 #include "Character.h"
+#include "Constants.h"
 
 
 Scene* _ObjectFactory::CreateScene(Context* context)
@@ -38,7 +39,7 @@ Camera* _ObjectFactory::SetupCamera(SharedPtr<Node> cameraNode, Context* context
 
 	cameraNode->SetPosition(Vector3(0.0f, 5.0f, 0.0f));
 
-	camera->SetFarClip(500.0f);
+	camera->SetFarClip(300.0f);
 
 	return camera;
 }
@@ -92,7 +93,7 @@ void _ObjectFactory::CreateZone()
 
 	zone->SetAmbientColor(Color(0.15f, 0.15f, 0.15f));
 	zone->SetFogColor(Color(0.5f, 0.5f, 0.7f));
-	zone->SetBoundingBox(BoundingBox(-1000.0f, 1000.0f));
+	zone->SetBoundingBox(BoundingBox(-FLOOR_SIZE, FLOOR_SIZE));
 }
 
 void _ObjectFactory::CreateLight(LightType lightType)
@@ -110,14 +111,14 @@ void _ObjectFactory::CreateLight(LightType lightType)
 	light->SetSpecularIntensity(0.5f);
 }
 
-void _ObjectFactory::CreateFloor(int w, int h)
+void _ObjectFactory::CreateFloor()
 {
 	Node* floorNode = scene->CreateChild("Floor");
 	StaticModel* model = floorNode->CreateComponent<StaticModel>();
 	RigidBody* body = floorNode->CreateComponent<RigidBody>();
 
 	floorNode->SetPosition(Vector3(0.0f, -0.5f, 0.0f));
-	floorNode->SetScale(Vector3(w, 1.0f, h));
+	floorNode->SetScale(Vector3(FLOOR_SIZE, 1.0f, FLOOR_SIZE));
 
 	model->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
 	model->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));

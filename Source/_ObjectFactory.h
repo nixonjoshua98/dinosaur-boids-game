@@ -18,7 +18,7 @@ public:
 	
 	void CreateZone();
 	void CreateLight(LightType);
-	void CreateFloor(int, int);
+	void CreateFloor();
 	void CreateMushroom(Vector3, Quaternion, float);
 	void CreateBox(Vector3, Quaternion, float);
 

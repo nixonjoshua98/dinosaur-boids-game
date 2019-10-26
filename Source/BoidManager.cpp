@@ -19,12 +19,14 @@ BoidManager::~BoidManager()
 
 void BoidManager::Initialise(ResourceCache* cache, Scene* _scene)
 {
+	scene = _scene;
+
 	// Create the base neighbour lookup table
 	for (float i = FLOOR_SIZE / 2; i < FLOOR_SIZE * 2; i += CELL_SIZE)
 	{
 		for (float j = FLOOR_SIZE / 2; j < FLOOR_SIZE * 2; j += CELL_SIZE)
 		{
-			boidNeighbourMap.emplace(GetCellKey({ i, 1.0f, j }), std::vector<Boid*>());
+			boidNeighbourMap.emplace(GetCellKey({ i, 0.0f, j }), std::vector<Boid*>());
 		}
 	}
 
@@ -37,16 +39,7 @@ void BoidManager::Initialise(ResourceCache* cache, Scene* _scene)
 		boids[i]->Initialise(cache, _scene);
 	}
 
-	scene = _scene;
-
-	threads = std::vector<std::thread>(NUM_THREADS);
-
 	thread = std::thread(&BoidManager::UpdateThread, this);
-}
-
-void BoidManager::SetDeltaTime(float delta)
-{
-	deltaTime = delta;
 }
 
 void BoidManager::Stop()
@@ -54,30 +47,36 @@ void BoidManager::Stop()
 	isRunning = false;
 }
 
-void BoidManager::Update()
+void BoidManager::Update(float delta)
 {
-	auto indexes = GetUpdateIndexes();
+	deltaTime = delta;
 
-	UpdateNeighbourMap();
-
-	for (int i = indexes.first; i < indexes.second; i++)
-	{
-		auto key = GetCellKey(boids[i]->GetPosition());
-
-		if (boidNeighbourMap[key].size() == 0)
-			continue;
-
-		boids[i]->ComputeForce(boidNeighbourMap[key]);
-
-		boids[i]->Update(deltaTime);
-	}
+	//UpdateThread();
 }
+
 
 void BoidManager::UpdateThread()
 {
 	while (isRunning)
 	{
-		Update();
+		auto indexes = GetUpdateIndexes();
+
+		UpdateNeighbourMap();
+
+		for (int i = indexes.first; i < indexes.second; i++)
+		{
+			auto key = GetCellKey(boids[i]->GetPosition());
+
+			if (boidNeighbourMap[key].size() == 0)
+				continue;
+
+			//if (i == 0)
+				//std::cout << boids[i]->GetPosition().x_ << ", " << boids[i]->GetPosition().z_ << std::endl;
+
+			boids[i]->ComputeForce(boidNeighbourMap[key]);
+
+			boids[i]->Update(deltaTime);
+		}
 	}
 }
 
