@@ -28,6 +28,11 @@
 #include "Character.h"
 #include "Touch.h"
 
+#include "_ObjectFactory.h"
+#include "PauseMenu.h"
+
+#include "Constants.h"
+
 #include "DinosaurGame.h"
 
 #define PRINT(x, y) std::cout << x << ", " << y <<"\n";
@@ -59,8 +64,6 @@ void DinosaurGame::Start()
 	CreateScene();
 	CreateCharacter();
 
-	boidSet.Initialise(FLOOR_SIZE, CELL_SIZE, GetSubsystem<ResourceCache>(), scene_);
-
 	SubscribeToEvents();
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
@@ -86,6 +89,8 @@ void DinosaurGame::CreateScene()
 	factory.CreateZone();
 	factory.CreateLight(LIGHT_DIRECTIONAL);
 	factory.CreateFloor(FLOOR_SIZE, FLOOR_SIZE);
+
+	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
 }
 
 void DinosaurGame::CreateCharacter()
@@ -114,6 +119,11 @@ void DinosaurGame::SubscribeToEvents()
 void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	Input* input = GetSubsystem<Input>();
+
+	scene_->RemoveComponent<DebugRenderer>();
+	scene_->CreateComponent<DebugRenderer>();
+
+	boidManager.SetDeltaTime(eventData[Update::P_TIMESTEP].GetFloat());
 	
 	character_->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
 	character_->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
@@ -125,11 +135,6 @@ void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	character_->controls_.pitch_ += (float)input->GetMouseMoveY() * YAW_SENSITIVITY;
 	character_->controls_.pitch_ = Clamp(character_->controls_.pitch_, -80.0f, 80.0f);
 	character_->GetNode()->SetRotation(Quaternion(character_->controls_.yaw_, Vector3::UP));
-
-	scene_->RemoveComponent<DebugRenderer>();
-	scene_->CreateComponent<DebugRenderer>();
-
-	boidSet.Update(eventData[Update::P_TIMESTEP].GetFloat());
 	
 	UpdatePauseMenuText(eventData[Update::P_TIMESTEP].GetFloat());
 }
@@ -199,7 +204,7 @@ void DinosaurGame::UpdatePauseMenuText(float delta)
 	int fps = 1.0f / delta;
 
 	pauseMenu->SetFPS(fps);
-	pauseMenu->SetBoidCount(boidSet.GetNumBoids());
+	pauseMenu->SetBoidCount(NUM_BOIDS);
 }
 
 void DinosaurGame::UpdateCamera()

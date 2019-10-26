@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <Urho3D/Scene/Node.h>
+
 namespace Urho3D
 {
 	class ResourceCache;
@@ -10,6 +12,8 @@ namespace Urho3D
 	class RigidBody;
 	class CollisionShape;
 	class StaticModel;
+	class Scene;
+	class Vector3;
 }
 
 using namespace Urho3D;
@@ -31,10 +35,9 @@ public:
 	void Initialise(ResourceCache*, Scene*);
 	void CreateComponents(ResourceCache*, Scene*);
 
-	void ComputeForce(Boid* boi, int);
 	void Update(float);
 
-	void ComputeForceUsingTable(std::vector<Boid>);
+	void ComputeForce(std::vector<Boid*>);
 
 	Vector3 GetPosition();
 	Vector3 GetLinearVelocity();

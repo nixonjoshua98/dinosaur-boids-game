@@ -48,61 +48,6 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	rigidBody->SetLinearVelocity({ Random(-20.0f, 20.0f), 0.0f, Random(-20.0f, 20.0f) });
 }
 
-void Boid::ComputeForce(Boid* boidArray, int totalBoids)
-{
-
-	Vector3 CoM;				// Centre of mass, accumulated total
-	int n = 0;					// Count number of neigbours	
-
-	Vector3 avgVelocity;
-	Vector3 sepV;
-
-	force = Vector3(0, 0, 0);		// Set the force member variable to zero
-
-	DebugRenderer* debugRenderer = node->GetScene()->GetComponent<DebugRenderer>();
-
-	for (int i = 0; i < totalBoids; i++)
-	{
-		if (this == &boidArray[i])
-			continue;
-
-		Vector3 otherBoidPosition = boidArray[i].GetPosition();
-
-		Vector3 sep = GetPosition() - otherBoidPosition;
-
-		if (sep.Length() < Range_FAttract)
-		{
-			CoM += otherBoidPosition;
-
-			debugRenderer->AddLine(GetPosition(), otherBoidPosition, Color(1, 1, 1, 1), false);
-
-			if (sep.Length() < Range_FRepel)
-				sepV += sep.Normalized();
-
-			n++;
-		}
-
-		if (sep.Length() < Range_FAlign)
-			avgVelocity += boidArray[i].GetLinearVelocity();
-	}
-
-	if (n > 0)
-	{
-		CoM /= n;
-		avgVelocity /= n;
-
-		Vector3 dir = (CoM - GetPosition()).Normalized();		  
-		Vector3 vDesired = dir * FAttract_Vmax;
-
-		// Forces
-		Vector3 attractive = (vDesired - GetLinearVelocity()) * FAttract_Factor;  
-		Vector3 allignment = (avgVelocity - GetLinearVelocity()) * FAlign_Factor;		
-		Vector3 repel = sepV * FRepel_Factor;
-
-		force += (attractive + allignment + repel);
-	}
-}
-
 void Boid::Update(float tm)
 {
 	rigidBody->ApplyForce(force);
@@ -125,18 +70,12 @@ void Boid::Update(float tm)
 
 	Vector3 currentPos = GetPosition();
 
-	if (abs(currentPos.x_) > 1024 || abs(currentPos.z_) > 1024)
-	{
-		currentPos.x_ = 0.0f;
-		currentPos.z_ = 0.0f;
-	}
-
 	currentPos.y_ = 0.5f;
 
 	rigidBody->SetPosition(currentPos);
 }
 
-void Boid::ComputeForceUsingTable(std::vector<Boid> boids)
+void Boid::ComputeForce(std::vector<Boid*> boids)
 {
 	Vector3 CoM;				// Centre of mass, accumulated total
 	int n = 0;					// Count number of neigbours	
@@ -146,48 +85,40 @@ void Boid::ComputeForceUsingTable(std::vector<Boid> boids)
 
 	force = Vector3(0, 0, 0);		// Set the force member variable to zero
 
-	DebugRenderer* debugRenderer = node->GetScene()->GetComponent<DebugRenderer>();
+	Vector3 pos = GetPosition();
 
 	for (unsigned int i = 0; i < boids.size(); i++)
 	{
-		Vector3 otherBoidPosition = boids[i].GetPosition();
+		Vector3 otherBoidPosition = boids[i]->GetPosition();
 
-		if (GetPosition() == otherBoidPosition)
+		if (pos == otherBoidPosition)
 			continue;
+		
+		Vector3 sep = pos - otherBoidPosition;
 
-		Vector3 sep = GetPosition() - otherBoidPosition;
+		CoM += otherBoidPosition;
+		
+		if (sep.Length() < Range_FRepel)
+			sepV += sep.Normalized();
 
-		if (sep.Length() < Range_FAttract)
-		{
-			CoM += otherBoidPosition;
-
-			debugRenderer->AddLine(GetPosition(), otherBoidPosition, Color(1, 1, 1, 1), false);
-
-			if (sep.Length() < Range_FRepel)
-				sepV += sep.Normalized();
-
-			n++;
-		}
-
+		n++;
+		
 		if (sep.Length() < Range_FAlign)
-			avgVelocity += boids[i].GetLinearVelocity();
+			avgVelocity += boids[i]->GetLinearVelocity();
 	}
 
-	if (n > 0)
-	{
-		CoM /= n;
-		avgVelocity /= n;
+	CoM /= n;
+	avgVelocity /= n;
 
-		Vector3 dir = (CoM - GetPosition()).Normalized();
-		Vector3 vDesired = dir * FAttract_Vmax;
+	Vector3 dir = (CoM - GetPosition()).Normalized();
+	Vector3 vDesired = dir * FAttract_Vmax;
 
-		// Forces
-		Vector3 attractive = (vDesired - GetLinearVelocity()) * FAttract_Factor;
-		Vector3 allignment = (avgVelocity - GetLinearVelocity()) * FAlign_Factor;
-		Vector3 repel = sepV * FRepel_Factor;
+	// Forces
+	Vector3 attractive = (vDesired - GetLinearVelocity()) * FAttract_Factor;
+	Vector3 allignment = (avgVelocity - GetLinearVelocity()) * FAlign_Factor;
+	Vector3 repel = sepV * FRepel_Factor;
 
-		force += (attractive + allignment + repel);
-	}
+	force += (attractive + allignment + repel);
 }
 
 Vector3 Boid::GetPosition()

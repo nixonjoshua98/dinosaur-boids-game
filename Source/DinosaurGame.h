@@ -12,15 +12,13 @@ namespace Urho3D
 class Character;
 class Touch;
 
-#include "_ObjectFactory.h"
-#include "BoidSet.h"
+class PauseMenu;
+class _ObjectFactory;
 
-// Includes
+#include "BoidManager.h"
+
 #include <memory>
 #include <iostream>
-
-#include "PauseMenu.h"
-// Includes
 
 
 class DinosaurGame : public Sample
@@ -85,8 +83,7 @@ private:
 	WeakPtr<Character> character_;
 	bool firstPerson_;
 
-	const int FLOOR_SIZE = 1024;
-	const int CELL_SIZE = 64;
+	BoidManager boidManager;
 
     void CreateScene();
     void CreateCharacter();
@@ -107,7 +104,6 @@ private:
 	void UpdatePauseMenuText(float);
 	void UpdateCamera();
 
-	BoidSet boidSet;
 	_ObjectFactory factory;
 
 	float pauseMenuUpdateTimer = 1.0f;
