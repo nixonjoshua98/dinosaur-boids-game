@@ -1,12 +1,28 @@
 
 
-#include "UrhoHeaders.h"
+#include <Urho3D/Graphics/AnimatedModel.h>
+#include <Urho3D/Graphics/AnimationController.h>
+#include <Urho3D/Graphics/Camera.h>
+#include <Urho3D/Graphics/Light.h>
+#include <Urho3D/Graphics/Material.h>
+#include <Urho3D/Graphics/Octree.h>
+#include <Urho3D/Graphics/Zone.h>
 
-#include "JN_ObjectFactory.h"
+#include <Urho3D/Input/Controls.h>
+
+#include <Urho3D/Physics/CollisionShape.h>
+#include <Urho3D/Physics/PhysicsWorld.h>
+#include <Urho3D/Physics/RigidBody.h>
+
+#include <Urho3D/Resource/ResourceCache.h>
+
+#include <Urho3D/Scene/Scene.h>
+
+#include "_ObjectFactory.h"
 #include "Character.h"
 
 
-Scene* JN_ObjectFactory::CreateScene(Context* context)
+Scene* _ObjectFactory::CreateScene(Context* context)
 {
 	Scene* scene = new Scene(context);
 
@@ -16,28 +32,28 @@ Scene* JN_ObjectFactory::CreateScene(Context* context)
 	return scene;
 }
 
-Camera* JN_ObjectFactory::SetupCamera(SharedPtr<Node> cameraNode, Context* context)
+Camera* _ObjectFactory::SetupCamera(SharedPtr<Node> cameraNode, Context* context)
 {
 	Camera* camera = cameraNode->CreateComponent<Camera>();
 
 	cameraNode->SetPosition(Vector3(0.0f, 5.0f, 0.0f));
 
-	camera->SetFarClip(300.0f);
+	camera->SetFarClip(500.0f);
 
 	return camera;
 }
 
-void JN_ObjectFactory::SetCache(ResourceCache* c)
+void _ObjectFactory::SetCache(ResourceCache* c)
 {
 	cache = c;
 }
 
-void JN_ObjectFactory::SetScene(Scene* s)
+void _ObjectFactory::SetScene(Scene* s)
 {
 	scene = s;
 }
 
-Character* JN_ObjectFactory::CreateCharacter(String name, Vector3 pos)
+Character* _ObjectFactory::CreateCharacter(String name, Vector3 pos)
 {
 	Node* objectNode = scene->CreateChild(name);
 	AnimatedModel* object = objectNode->CreateComponent<AnimatedModel>();
@@ -68,7 +84,7 @@ Character* JN_ObjectFactory::CreateCharacter(String name, Vector3 pos)
 	return objectNode->CreateComponent<Character>();
 }
 
-void JN_ObjectFactory::CreateZone()
+void _ObjectFactory::CreateZone()
 {
 	Node* zoneNode = scene->CreateChild("Zone");
 
@@ -76,12 +92,10 @@ void JN_ObjectFactory::CreateZone()
 
 	zone->SetAmbientColor(Color(0.15f, 0.15f, 0.15f));
 	zone->SetFogColor(Color(0.5f, 0.5f, 0.7f));
-	zone->SetFogStart(100.0f);
-	zone->SetFogEnd(300.0f);
 	zone->SetBoundingBox(BoundingBox(-1000.0f, 1000.0f));
 }
 
-void JN_ObjectFactory::CreateLight(LightType lightType)
+void _ObjectFactory::CreateLight(LightType lightType)
 {
 	Node* lightNode = scene->CreateChild("DirectionalLight");
 
@@ -96,14 +110,14 @@ void JN_ObjectFactory::CreateLight(LightType lightType)
 	light->SetSpecularIntensity(0.5f);
 }
 
-void JN_ObjectFactory::CreateFloor()
+void _ObjectFactory::CreateFloor(int w, int h)
 {
 	Node* floorNode = scene->CreateChild("Floor");
 	StaticModel* model = floorNode->CreateComponent<StaticModel>();
 	RigidBody* body = floorNode->CreateComponent<RigidBody>();
 
 	floorNode->SetPosition(Vector3(0.0f, -0.5f, 0.0f));
-	floorNode->SetScale(Vector3(200.0f, 1.0f, 200.0f));
+	floorNode->SetScale(Vector3(w, 1.0f, h));
 
 	model->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
 	model->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
@@ -115,7 +129,7 @@ void JN_ObjectFactory::CreateFloor()
 	shape->SetBox(Vector3::ONE);
 }
 
-void JN_ObjectFactory::CreateMushroom(Vector3 pos, Quaternion rotation, float scale)
+void _ObjectFactory::CreateMushroom(Vector3 pos, Quaternion rotation, float scale)
 {
 	Node* node = CreateObject("Mushroom", "Models/Mushroom.mdl", "Materials/Mushroom.xml", pos, rotation, scale, 0.0f);
 
@@ -126,7 +140,7 @@ void JN_ObjectFactory::CreateMushroom(Vector3 pos, Quaternion rotation, float sc
 	shape->SetTriangleMesh(object->GetModel(), 0);
 }
 
-void JN_ObjectFactory::CreateBox(Vector3 pos, Quaternion rotation, float scale)
+void _ObjectFactory::CreateBox(Vector3 pos, Quaternion rotation, float scale)
 {
 	Node* node = CreateObject("Box", "Models/Box.mdl", "Materials/Stone.xml", pos, rotation, scale, scale * 2.0f);
 
@@ -135,7 +149,7 @@ void JN_ObjectFactory::CreateBox(Vector3 pos, Quaternion rotation, float scale)
 	shape->SetBox(Vector3::ONE);
 }
 
-Node* JN_ObjectFactory::CreateObject(String name, String model, String mat, 
+Node* _ObjectFactory::CreateObject(String name, String model, String mat, 
 	Vector3 pos, Quaternion rotation, float scale, float mass)
 {
 	Node* node = scene->CreateChild(name);

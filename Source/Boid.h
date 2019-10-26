@@ -1,13 +1,23 @@
 
 #pragma once
 
-#include "UrhoHeaders.h"
+#include <vector>
+
+namespace Urho3D
+{
+	class ResourceCache;
+
+	class RigidBody;
+	class CollisionShape;
+	class StaticModel;
+}
 
 using namespace Urho3D;
 
 class Boid
 {
 public:
+	Boid() {};
 	~Boid() {};
 
 	static float Range_FAttract;
@@ -21,11 +31,13 @@ public:
 	void Initialise(ResourceCache*, Scene*);
 	void CreateComponents(ResourceCache*, Scene*);
 
-	void ComputeForce(Boid*, int, bool = false);
+	void ComputeForce(Boid* boi, int);
 	void Update(float);
 
-	Vector3 GetPosition()		{ return rigidBody->GetPosition();       }
-	Vector3 GetLinearVelocity() { return rigidBody->GetLinearVelocity(); }
+	void ComputeForceUsingTable(std::vector<Boid>);
+
+	Vector3 GetPosition();
+	Vector3 GetLinearVelocity();
 
 private:
 	Vector3 force;

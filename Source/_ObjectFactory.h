@@ -1,13 +1,11 @@
 
 #pragma once
 
-
 using namespace Urho3D;
 
 class Character;
 
-
-class JN_ObjectFactory
+class _ObjectFactory
 {
 public:
 	Scene* CreateScene(Context*);
@@ -20,7 +18,7 @@ public:
 	
 	void CreateZone();
 	void CreateLight(LightType);
-	void CreateFloor();
+	void CreateFloor(int, int);
 	void CreateMushroom(Vector3, Quaternion, float);
 	void CreateBox(Vector3, Quaternion, float);
 

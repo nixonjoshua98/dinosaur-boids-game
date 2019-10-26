@@ -1,4 +1,17 @@
 
+#include <Urho3D/Resource/ResourceCache.h>
+
+#include <Urho3D/Scene/Scene.h>
+
+#include <Urho3D/Physics/RigidBody.h>
+#include <Urho3D/Physics/CollisionShape.h>
+
+#include <Urho3D/Graphics/Model.h>
+#include <Urho3D/Graphics/StaticModel.h>
+#include <Urho3D/Graphics/DebugRenderer.h>
+
+#include <iostream>
+
 #include "Boid.h"
 
 float Boid::Range_FAttract = 30.0f;
@@ -11,8 +24,6 @@ float Boid::FAttract_Factor = 4.0f;
 
 float Boid::FRepel_Factor = 3.0f;
 float Boid::Range_FRepel = 20.0f;
-
-#include <Urho3D/Graphics/DebugRenderer.h>
 
 void Boid::Initialise(ResourceCache* cache, Scene* scene)
 {
@@ -31,12 +42,15 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
-	rigidBody->SetPosition({ Random(180.0f) - 90.0f, 30.0f, Random(180.0f) - 90.0f });
+
+	rigidBody->SetPosition({Random(-500.0f, 500.0f), 1.0f, Random(-500.0f, 500.0f) });
+
 	rigidBody->SetLinearVelocity({ Random(-20.0f, 20.0f), 0.0f, Random(-20.0f, 20.0f) });
 }
 
-void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
+void Boid::ComputeForce(Boid* boidArray, int totalBoids)
 {
+
 	Vector3 CoM;				// Centre of mass, accumulated total
 	int n = 0;					// Count number of neigbours	
 
@@ -47,7 +61,6 @@ void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
 
 	DebugRenderer* debugRenderer = node->GetScene()->GetComponent<DebugRenderer>();
 
-	// Search Neighbourhood
 	for (int i = 0; i < totalBoids; i++)
 	{
 		if (this == &boidArray[i])
@@ -57,13 +70,11 @@ void Boid::ComputeForce(Boid* boidArray, int totalBoids, bool debug)
 
 		Vector3 sep = GetPosition() - otherBoidPosition;
 
-		// Within range, so it is a neighbour
 		if (sep.Length() < Range_FAttract)
 		{
 			CoM += otherBoidPosition;
 
-			if (debug && debugRenderer)
-				debugRenderer->AddLine(GetPosition(), otherBoidPosition, Color(1, 1, 1, 1), false);
+			debugRenderer->AddLine(GetPosition(), otherBoidPosition, Color(1, 1, 1, 1), false);
 
 			if (sep.Length() < Range_FRepel)
 				sepV += sep.Normalized();
@@ -102,17 +113,89 @@ void Boid::Update(float tm)
 
 	rigidBody->SetLinearVelocity(vel.Normalized() * d);
 
-	Vector3 vn		= vel.Normalized();
+	//Vector3 vn		= vel.Normalized();
 
-	Vector3 cp		= -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
+	//Vector3 cp		= -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
 
-	float	dp			= cp.DotProduct(vn);
+	//float dp		= cp.DotProduct(vn);
 
 	//rigidBody->SetRotation(Quaternion(Acos(dp), cp));
 
+	rigidBody->SetRotation(Quaternion(0, 270, 270));
+
 	Vector3 currentPos = GetPosition();
 
-	currentPos.y_ = 1.0f;
+	if (abs(currentPos.x_) > 1024 || abs(currentPos.z_) > 1024)
+	{
+		currentPos.x_ = 0.0f;
+		currentPos.z_ = 0.0f;
+	}
+
+	currentPos.y_ = 0.5f;
 
 	rigidBody->SetPosition(currentPos);
+}
+
+void Boid::ComputeForceUsingTable(std::vector<Boid> boids)
+{
+	Vector3 CoM;				// Centre of mass, accumulated total
+	int n = 0;					// Count number of neigbours	
+
+	Vector3 avgVelocity;
+	Vector3 sepV;
+
+	force = Vector3(0, 0, 0);		// Set the force member variable to zero
+
+	DebugRenderer* debugRenderer = node->GetScene()->GetComponent<DebugRenderer>();
+
+	for (unsigned int i = 0; i < boids.size(); i++)
+	{
+		Vector3 otherBoidPosition = boids[i].GetPosition();
+
+		if (GetPosition() == otherBoidPosition)
+			continue;
+
+		Vector3 sep = GetPosition() - otherBoidPosition;
+
+		if (sep.Length() < Range_FAttract)
+		{
+			CoM += otherBoidPosition;
+
+			debugRenderer->AddLine(GetPosition(), otherBoidPosition, Color(1, 1, 1, 1), false);
+
+			if (sep.Length() < Range_FRepel)
+				sepV += sep.Normalized();
+
+			n++;
+		}
+
+		if (sep.Length() < Range_FAlign)
+			avgVelocity += boids[i].GetLinearVelocity();
+	}
+
+	if (n > 0)
+	{
+		CoM /= n;
+		avgVelocity /= n;
+
+		Vector3 dir = (CoM - GetPosition()).Normalized();
+		Vector3 vDesired = dir * FAttract_Vmax;
+
+		// Forces
+		Vector3 attractive = (vDesired - GetLinearVelocity()) * FAttract_Factor;
+		Vector3 allignment = (avgVelocity - GetLinearVelocity()) * FAlign_Factor;
+		Vector3 repel = sepV * FRepel_Factor;
+
+		force += (attractive + allignment + repel);
+	}
+}
+
+Vector3 Boid::GetPosition()
+{
+	return rigidBody->GetPosition();
+}
+
+Vector3 Boid::GetLinearVelocity()
+{
+	return rigidBody->GetLinearVelocity();
 }

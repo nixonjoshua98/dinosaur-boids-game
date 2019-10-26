@@ -16,16 +16,15 @@ void PauseMenu::Create()
 	const String controls = 
 		"WASD - Move\n"
 		"F1   - Toggle camera\n"
-		"F5   - Save Scene\n"
-		"F7   - Load Scene\n"
 		"F11  - Fullscreen\n"
 		"Esc  - Pause Menu";
 
 	controlsText	= CreateText(root, controls,	HA_LEFT	, { 5, 0 });
 	FPSText			= CreateText(root, "FPS_TEXT",	HA_RIGHT, {-5, 0 });
+	boidText		= CreateText(root, "BOID_TEXT", HA_RIGHT, {-150, 0 });
 
-	continueBtn		= CreateButton(root, "Continue",	HA_CENTER, { 512, 384 - 25 }, 5, 5);
-	quitBtn			= CreateButton(root, "Quit",		HA_CENTER, { 512, 384 + 25 }, 5, 5);
+	continueBtn		= CreateButton(root, "Continue", { 400, 300 }, 5, 5, 32);
+	quitBtn			= CreateButton(root, "Quit",	 { 400, 350 }, 5, 5, 32);
 }
 
 void PauseMenu::Toggle()
@@ -34,6 +33,7 @@ void PauseMenu::Toggle()
 
 	controlsText->SetVisible(isShowing);
 	FPSText->SetVisible(isShowing);
+	boidText->SetVisible(isShowing);
 
 	continueBtn->SetVisible(isShowing);
 	quitBtn->SetVisible(isShowing);
@@ -42,4 +42,9 @@ void PauseMenu::Toggle()
 void PauseMenu::SetFPS(int fps)
 {
 	FPSText->SetText(String(fps));
+}
+
+void PauseMenu::SetBoidCount(int count)
+{
+	boidText->SetText("Boids: " + String(count));
 }

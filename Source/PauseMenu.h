@@ -1,7 +1,6 @@
 
 #include "InterfaceBaseClass.h"
 
-
 namespace Urho3D
 {
 	class Text;
@@ -20,6 +19,7 @@ public:
 	void Toggle();
 
 	void SetFPS(int fps);
+	void SetBoidCount(int count);
 
 	Button* GetContinueButton() { return continueBtn; }
 	Button* GetQuitButton() { return quitBtn; }
@@ -33,6 +33,7 @@ private:
 
 	Text* controlsText;
 	Text* FPSText;
+	Text* boidText;
 
 	Button* continueBtn;
 	Button* quitBtn;
