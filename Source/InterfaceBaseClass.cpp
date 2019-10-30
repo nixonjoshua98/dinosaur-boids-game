@@ -31,6 +31,8 @@ Text* InterfaceBaseClass::CreateText(UIElement* parent, String str, HorizontalAl
 
 	txt->SetStyleAuto();
 
+	txt->SetStyle("Text");
+
 	return txt;
 }
 
@@ -52,6 +54,8 @@ Button* InterfaceBaseClass::CreateButton(UIElement* parent, String str, IntVecto
 	btn->SetFixedHeight(h);
 
 	btn->SetStyleAuto();
+
+	btn->SetStyle("Button");
 
 	return btn;
 }

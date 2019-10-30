@@ -7,11 +7,14 @@
 class RealTimer
 {
 public:
-	RealTimer();
+	RealTimer(std::string = "Timer: ");
+	~RealTimer();
 
 	float Tick();
 	void Reset();
 
-protected:
-	std::chrono::system_clock::time_point start;	// Time at init
+private:
+	std::string txt;
+
+	std::chrono::system_clock::time_point start;
 };

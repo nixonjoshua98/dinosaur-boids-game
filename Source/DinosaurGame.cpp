@@ -30,13 +30,10 @@
 
 #include "_ObjectFactory.h"
 #include "PauseMenu.h"
-
+#include "RealTimer.h"
 #include "Constants.h"
 
 #include "DinosaurGame.h"
-
-// Temp
-#include "Boid.h"
 
 
 
@@ -47,6 +44,8 @@ DinosaurGame::DinosaurGame(Context* context) :
     firstPerson_(false)
 {
 	Character::RegisterObject(context);
+
+	GetSubsystem<UI>()->GetRoot()->SetDefaultStyle(GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/DefaultStyle.xml"));
 
 	pauseMenu = std::make_unique<PauseMenu>(GetSubsystem<UI>(), GetSubsystem<ResourceCache>());
 
@@ -74,7 +73,7 @@ void DinosaurGame::Start()
 	Sample::InitMouseMode(MM_RELATIVE);
 }
 
-void DinosaurGame::CreateScene()
+inline void DinosaurGame::CreateScene()
 {
 	pauseMenu->Create();
 
@@ -98,7 +97,7 @@ void DinosaurGame::CreateScene()
 	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
 }
 
-void DinosaurGame::CreateCharacter()
+inline void DinosaurGame::CreateCharacter()
 {
 	Input* input = GetSubsystem<Input>();
 
@@ -109,9 +108,10 @@ void DinosaurGame::CreateCharacter()
 
 void DinosaurGame::SubscribeToEvents()
 {
-	SubscribeToEvent(E_KEYUP,		URHO3D_HANDLER(DinosaurGame, HandleKeyUp));
-	SubscribeToEvent(E_UPDATE,		URHO3D_HANDLER(DinosaurGame, HandleUpdate));
-	SubscribeToEvent(E_POSTUPDATE,	URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
+	SubscribeToEvent(E_KEYUP,				URHO3D_HANDLER(DinosaurGame, HandleKeyUp));
+	SubscribeToEvent(E_UPDATE,				URHO3D_HANDLER(DinosaurGame, HandleUpdate));
+	SubscribeToEvent(E_POSTUPDATE,			URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
+	SubscribeToEvent(E_POSTRENDERUPDATE,	URHO3D_HANDLER(DinosaurGame, HandlePostRenderUpdate));
 
 	SubscribeToEvent(pauseMenu->GetContinueButton(),	E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnContinueButtonDown));
 	SubscribeToEvent(pauseMenu->GetQuitButton(),		E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
@@ -123,7 +123,11 @@ void DinosaurGame::SubscribeToEvents()
 
 void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
+	//scene_->BeginThreadedUpdate();
+
 	Input* input = GetSubsystem<Input>();
+
+	boidManager.Update(eventData[Update::P_TIMESTEP].GetFloat());
 	
 	character_->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
 	character_->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
@@ -135,11 +139,6 @@ void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	character_->controls_.pitch_ += (float)input->GetMouseMoveY() * YAW_SENSITIVITY;
 	character_->controls_.pitch_ = Clamp(character_->controls_.pitch_, -80.0f, 80.0f);
 	character_->GetNode()->SetRotation(Quaternion(character_->controls_.yaw_, Vector3::UP));
-
-	scene_->RemoveComponent<DebugRenderer>();
-	scene_->CreateComponent<DebugRenderer>();
-
-	boidManager.Update(eventData[Update::P_TIMESTEP].GetFloat());
 	
 	UpdatePauseMenuText(eventData[Update::P_TIMESTEP].GetFloat());
 }
@@ -169,6 +168,13 @@ void DinosaurGame::HandleKeyUp(StringHash eventType, VariantMap& eventData)
 	}
 }
 
+void DinosaurGame::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)
+{
+	//auto tree = scene_->GetComponent<Octree>();
+
+	//tree->DrawDebugGeometry(true);
+}
+
 // Button callbacks
 
 void DinosaurGame::OnContinueButtonDown(StringHash eventType, VariantMap& eventData)
@@ -183,7 +189,7 @@ void DinosaurGame::OnQuitButtonDown(StringHash eventType, VariantMap& eventData)
 	engine_->Exit();
 }
 
-void DinosaurGame::TogglePauseMenu()
+inline void DinosaurGame::TogglePauseMenu()
 {
 	Input* input = GetSubsystem<Input>();
 
@@ -196,7 +202,7 @@ void DinosaurGame::TogglePauseMenu()
 
 //
 
-void DinosaurGame::UpdatePauseMenuText(float delta)
+inline void DinosaurGame::UpdatePauseMenuText(float delta)
 {
 	prevDelta = delta;
 
@@ -209,12 +215,12 @@ void DinosaurGame::UpdatePauseMenuText(float delta)
 	int fps = 1.0f / delta;
 
 	pauseMenu->SetFPS(fps);
-	pauseMenu->SetBoidCount(NUM_BOIDS);
+	pauseMenu->SetBoidCount(boidManager.GetNumBoids());
 }
 
-void DinosaurGame::UpdateCamera()
+inline void DinosaurGame::UpdateCamera()
 {
-	bool freeCam = true;
+	bool freeCam = false;
 
 	if (freeCam)
 	{

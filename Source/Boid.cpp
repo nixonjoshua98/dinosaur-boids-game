@@ -44,7 +44,7 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
 
-	rigidBody->SetPosition({Random(-250.0f, 250.0f), 1.0f, Random(-250.0f, 250.0f) });
+	rigidBody->SetPosition({Random(-150.0f, 150.0f), 0.5f, Random(-150.0f, 150.0f) });
 
 	rigidBody->SetLinearVelocity({ Random(-20.0f, 20.0f), 0.0f, Random(-20.0f, 20.0f) });
 }
@@ -59,19 +59,11 @@ void Boid::Update(float tm)
 
 	rigidBody->SetLinearVelocity(vel.Normalized() * d);
 
-	//Vector3 vn		= vel.Normalized();
-
-	//Vector3 cp		= -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
-
-	//float dp		= cp.DotProduct(vn);
-
-	//rigidBody->SetRotation(Quaternion(Acos(dp), cp));
-
 	rigidBody->SetRotation(Quaternion(0, 270, 270));
 
 	Vector3 currentPos = GetPosition();
 
-	currentPos.y_ = 1.0f;
+	currentPos.y_ = 0.5f;
 
 	rigidBody->SetPosition(currentPos);
 }
@@ -88,8 +80,6 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 
 	Vector3 pos = GetPosition();
 
-	//auto r = node->GetScene()->GetComponent<DebugRenderer>();
-
 	for (unsigned int i = 0; i < boids.size(); i++)
 	{
 		Vector3 otherBoidPosition = boids[i]->GetPosition();
@@ -97,9 +87,6 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 
 		if (pos == otherBoidPosition)
 			continue;
-
-		//if ( i + 1 < boids.size())
-			//r->AddLine(boids[i]->GetPosition(), boids[i+1]->GetPosition(), { 1, 1, 1 }, false);
 		
 		Vector3 sep = pos - otherBoidPosition;
 
@@ -136,4 +123,9 @@ Vector3 Boid::GetPosition()
 Vector3 Boid::GetLinearVelocity()
 {
 	return rigidBody->GetLinearVelocity();
+}
+
+bool Boid::IsVisible()
+{
+	return staticModel->IsInView();
 }

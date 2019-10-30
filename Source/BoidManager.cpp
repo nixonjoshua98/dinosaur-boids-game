@@ -4,22 +4,27 @@
 #include "Boid.h"
 
 #include "BoidManager.h"
+#include "RealTimer.h"
 
 BoidManager::~BoidManager()
 {
 	Stop();
 
-	thread.join();
+	for (std::thread& t : threads)
+		t.join();
 
-	for (int i = 0; i < NUM_BOIDS; i++)
+	for (int i = 0; i < numBoids; i++)
 		delete boids[i];
 
 	delete[] boids;
 }
 
-void BoidManager::Initialise(ResourceCache* cache, Scene* _scene)
+void BoidManager::Initialise(ResourceCache* _cache, Scene* _scene)
 {
+	auto timer = RealTimer("BoidManager::Initialise: ");
+
 	scene = _scene;
+	cache = _cache;
 
 	// Create the base neighbour lookup table
 	for (float i = FLOOR_SIZE / 2; i < FLOOR_SIZE * 2; i += CELL_SIZE)
@@ -30,16 +35,11 @@ void BoidManager::Initialise(ResourceCache* cache, Scene* _scene)
 		}
 	}
 
-	boids = new Boid * [NUM_BOIDS];
+	boids	= new Boid * [MAX_NUM_BOIDS];
+	threads	= std::vector<std::thread>(NUM_BOID_THREADS);
 
-	for (int i = 0; i < NUM_BOIDS; i++)
-	{
-		boids[i] = new Boid();
-
-		boids[i]->Initialise(cache, _scene);
-	}
-
-	thread = std::thread(&BoidManager::UpdateThread, this);
+	for (auto i = 0; i < threads.size(); i++)
+		threads[i] = std::thread(&BoidManager::UpdateThread, this, i);
 }
 
 void BoidManager::Stop()
@@ -51,37 +51,68 @@ void BoidManager::Update(float delta)
 {
 	deltaTime = delta;
 
-	//UpdateThread();
+	SpawnBoid(Max(1, delta * 100));
+
+	UpdateNeighbourMap();
+
+	currentFrame++;
 }
 
-
-void BoidManager::UpdateThread()
+void BoidManager::SpawnBoid(int amount)
 {
+	for (int i = 0; i < amount; i++)
+	{
+		if (numBoids < MAX_NUM_BOIDS)
+		{
+			boids[numBoids] = new Boid();
+
+			boids[numBoids]->Initialise(cache, scene);
+
+			numBoids++;
+		}
+	}
+}
+
+void BoidManager::UpdateThread(int threadID)
+{
+	unsigned int frame = currentFrame;
+
 	while (isRunning)
 	{
-		auto indexes = GetUpdateIndexes();
-
-		UpdateNeighbourMap();
-
-		for (int i = indexes.first; i < indexes.second; i++)
+		// Syncs the update to a single frame
+		if (frame != currentFrame)
 		{
-			auto key = GetCellKey(boids[i]->GetPosition());
+			frame = currentFrame;
 
-			if (boidNeighbourMap[key].size() == 0)
-				continue;
+			auto indexes = GetUpdateIndexes(threadID);
 
-			//if (i == 0)
-				//std::cout << boids[i]->GetPosition().x_ << ", " << boids[i]->GetPosition().z_ << std::endl;
+			for (int i = indexes.first; i < indexes.second; i++)
+			{
+				auto key = GetCellKey(boids[i]->GetPosition());
 
-			boids[i]->ComputeForce(boidNeighbourMap[key]);
+				lock.lock();
 
-			boids[i]->Update(deltaTime);
+				bool hasNeighbours = boidNeighbourMap[key].size() == 0;
+
+				lock.unlock();
+
+				if (hasNeighbours)
+					continue;
+
+				//if (boids[i]->IsVisible()) continue;
+
+				boids[i]->ComputeForce(boidNeighbourMap[key]);
+
+				boids[i]->Update(deltaTime);
+			}
 		}
 	}
 }
 
 void BoidManager::UpdateNeighbourMap()
 {
+	lock.lock();
+
 	auto it = boidNeighbourMap.begin();
 
 	// Clear
@@ -93,17 +124,21 @@ void BoidManager::UpdateNeighbourMap()
 	}
 
 	// Update
-	for (int i = 0; i < NUM_BOIDS; i++)
+	for (int i = 0; i < numBoids; i++)
 	{
 		std::pair<int, int> key = GetCellKey(boids[i]->GetPosition());
 
 		boidNeighbourMap[key].push_back(boids[i]);
 	}
+
+	lock.unlock();
 }
 
-std::pair<int, int> BoidManager::GetUpdateIndexes()
+std::pair<int, int> BoidManager::GetUpdateIndexes(int threadID)
 {
-	int start, end;
+	int chunk_size = numBoids / NUM_BOID_THREADS;
+
+	int start = 0, end = 0;
 
 	switch (alternateUpdate)
 	{
@@ -111,28 +146,29 @@ std::pair<int, int> BoidManager::GetUpdateIndexes()
 	case BoidsUpdateEnum::FIRST_HALF:
 		alternateUpdate = BoidsUpdateEnum::SECOND_HALF;
 
-		start = 0;
-		end = NUM_BOIDS / 2;
+		start	= threadID * (chunk_size / 2);
+		end		= start + (chunk_size / 2);
+
 		break;
 
 	case BoidsUpdateEnum::SECOND_HALF:
 		alternateUpdate = BoidsUpdateEnum::FIRST_HALF;
 
-		start = NUM_BOIDS / 2;
-		end = NUM_BOIDS;
+		start	= threadID * (chunk_size / 2) + numBoids / 2;
+		end		= start + (chunk_size / 2);
+
+		if (threadID + 1 == NUM_BOID_THREADS)
+			end = numBoids;
+
 		break;
 
 	case BoidsUpdateEnum::ALL:
-		start = 0;
-		end = NUM_BOIDS;
-		break;
+		start	= threadID * chunk_size;
+		end		= start + chunk_size;
 
-	default:
-		start = 0;
-		end = NUM_BOIDS;
 		break;
 	}
-
+	
 	return { start, end };
 }
 

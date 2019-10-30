@@ -1,11 +1,20 @@
 #include "RealTimer.h"
 
+#include <iostream>
+
 // Default constructor
-RealTimer::RealTimer()
+RealTimer::RealTimer(std::string _txt)
 {
+	txt = _txt;
+
 	Reset();
 }
 
+
+RealTimer::~RealTimer()
+{
+	std::cout << txt << Tick() << "s\n";
+}
 
 // Returns time since start in milliseconds
 float RealTimer::Tick()

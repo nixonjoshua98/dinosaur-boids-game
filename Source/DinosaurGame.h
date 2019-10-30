@@ -93,6 +93,7 @@ private:
 	void HandleUpdate(StringHash eventType, VariantMap& eventData);
     void HandlePostUpdate(StringHash eventType, VariantMap& eventData);
 	void HandleKeyUp(StringHash eventType, VariantMap& eventData);
+	void HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData);
 
 	void OnContinueButtonDown(StringHash eventType, VariantMap& eventData);
 	void OnQuitButtonDown(StringHash eventType, VariantMap& eventData);

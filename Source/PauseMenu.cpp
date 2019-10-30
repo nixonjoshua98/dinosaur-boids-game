@@ -23,8 +23,8 @@ void PauseMenu::Create()
 	FPSText			= CreateText(root, "FPS_TEXT",	HA_RIGHT, {-5, 0 });
 	boidText		= CreateText(root, "BOID_TEXT", HA_RIGHT, {-150, 0 });
 
-	continueBtn		= CreateButton(root, "Continue", { 400, 300 }, 5, 5, 32);
-	quitBtn			= CreateButton(root, "Quit",	 { 400, 350 }, 5, 5, 32);
+	continueBtn		= CreateButton(root, "Continue", { 400, 300 }, 50, 25, 32);
+	quitBtn			= CreateButton(root, "Quit",	 { 400, 350 }, 50, 25, 32);
 }
 
 void PauseMenu::Toggle()
