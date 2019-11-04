@@ -13,6 +13,8 @@ class Character;
 class Touch;
 
 class PauseMenu;
+//class MainMenu;
+
 class _ObjectFactory;
 
 #include "BoidManager.h"
@@ -81,9 +83,19 @@ private:
 
 	SharedPtr<Touch> touch_;
 	WeakPtr<Character> character_;
+	SharedPtr<Cursor> cursor;
+
 	bool firstPerson_;
 
 	BoidManager boidManager;
+	_ObjectFactory factory;
+
+	std::unique_ptr<PauseMenu> pauseMenu;
+	std::unique_ptr<MainMenu> mainMenu;
+
+	float pauseMenuUpdateTimer = 1.0f;
+
+	float prevDelta;
 
     void CreateScene();
 	void CreateInterface();
@@ -105,16 +117,6 @@ private:
 
 	void TogglePauseMenu();
 
-	std::unique_ptr<PauseMenu> pauseMenu;
-
-	SharedPtr<Cursor> cursor;
-
 	void UpdatePauseMenuText(float);
 	void UpdateCamera();
-
-	_ObjectFactory factory;
-
-	float pauseMenuUpdateTimer = 1.0f;
-
-	float prevDelta;
 };

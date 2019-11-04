@@ -34,14 +34,16 @@
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/CheckBox.h>
 
-
 #include <string>
 
 #include "Character.h"
 #include "Touch.h"
 
 #include "_ObjectFactory.h"
+
+#include "MainMenu.h"
 #include "PauseMenu.h"
+
 #include "RealTimer.h"
 #include "Constants.h"
 
@@ -69,7 +71,7 @@ DinosaurGame::~DinosaurGame()
 
 void DinosaurGame::Start()
 {
-    Sample::Start();
+	Sample::Start();
 
 	CreateScene();
 
@@ -79,9 +81,9 @@ void DinosaurGame::Start()
 
 	SubscribeToEvents();
 
-	GetSubsystem<Input>()->SetMouseVisible(true);
-
 	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
+
+	GetSubsystem<Input>()->SetMouseVisible(true);
 
 	Sample::InitMouseMode(MM_RELATIVE);
 }
@@ -123,8 +125,10 @@ void DinosaurGame::CreateInterface()
 
 	cursor->SetVisible(false);
 
-	pauseMenu = std::make_unique<PauseMenu>(ui, cache);
+	pauseMenu	= std::make_unique<PauseMenu>(ui, cache);
+	mainMenu	= std::make_unique<MainMenu>(ui, cache);
 
+	mainMenu->Create();
 	pauseMenu->Create();
 }
 

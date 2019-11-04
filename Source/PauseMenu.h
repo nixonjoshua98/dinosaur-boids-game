@@ -1,14 +1,9 @@
 
 #include "InterfaceBaseClass.h"
 
-namespace Urho3D
-{
-	class Text;
-	class ResourceCache;
-}
-
 class PauseMenu : public InterfaceBaseClass
 {
+
 public:
 
 	PauseMenu(UI*, ResourceCache*);
@@ -37,7 +32,5 @@ private:
 	Text* boidText;
 	Text* threadText;
 	Text* controlsText;
-
-	bool isShowing = false;
 
 };
