@@ -1,12 +1,12 @@
 
-#include "PauseMenu.h"
+#include "GameMenu.h"
 
-PauseMenu::PauseMenu(UI* _ui, ResourceCache* _cache) : InterfaceBaseClass(_ui, _cache)
+GameMenu::GameMenu(UI* _ui, ResourceCache* _cache) : InterfaceBaseClass(_ui, _cache)
 {
 	
 }
 
-void PauseMenu::Create()
+void GameMenu::Create()
 {
 	const String controls = 
 		"WASD    - Move\n"
@@ -39,19 +39,17 @@ void PauseMenu::Create()
 
 	menuWindow->SetVisible(false);
 	debugWindow->SetVisible(false);
-	//controlsWindow->SetVisible(false);
 }
 
-void PauseMenu::Toggle()
+void GameMenu::Toggle()
 {
 	isShowing = !isShowing;
 
 	menuWindow->SetVisible(isShowing);
 	debugWindow->SetVisible(isShowing);
-	//controlsWindow->SetVisible(isShowing);
 }
 
-void PauseMenu::SetText(int fps, int boids, int threads)
+void GameMenu::SetText(int fps, int boids, int threads)
 {
 	fpsText->SetText("FPS: " + String(fps));
 	boidText->SetText("Boids: " + String(boids));

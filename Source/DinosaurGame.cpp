@@ -24,6 +24,9 @@
 
 #include <Urho3D/Scene/Scene.h>
 
+#include <Urho3D/Network/Network.h>
+#include <Urho3D/Network/NetworkEvents.h>
+
 #include <Urho3D/UI/Font.h>
 #include <Urho3D/UI/Button.h>
 #include <Urho3D/UI/UIEvents.h>
@@ -34,6 +37,9 @@
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/CheckBox.h>
 
+#include <Urho3D/IO/MemoryBuffer.h>
+#include <Urho3D/IO/VectorBuffer.h>
+
 #include <string>
 
 #include "Character.h"
@@ -42,16 +48,17 @@
 #include "_ObjectFactory.h"
 
 #include "MainMenu.h"
-#include "PauseMenu.h"
+#include "GameMenu.h"
 
 #include "RealTimer.h"
 #include "Constants.h"
 
 #include "DinosaurGame.h"
 
+
 URHO3D_DEFINE_APPLICATION_MAIN(DinosaurGame)
 
-
+#undef SendMessage
 
 DinosaurGame::DinosaurGame(Context* context) :
     Sample(context),
@@ -123,11 +130,11 @@ void DinosaurGame::CreateInterface()
 
 	cursor->SetPosition({ 1024 / 2, 768 / 2 });
 
-	pauseMenu	= std::make_unique<PauseMenu>(ui, cache);
+	gameMenu	= std::make_unique<GameMenu>(ui, cache);
 	mainMenu	= std::make_unique<MainMenu>(ui, cache);
 
 	mainMenu->Create();
-	pauseMenu->Create();
+	gameMenu->Create();
 }
 
 void DinosaurGame::CreateCharacter()
@@ -153,8 +160,8 @@ void DinosaurGame::StartGame()
 void DinosaurGame::SubscribeToMainMenuEvents()
 {
 	SubscribeToEvent(mainMenu->GetPlayBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnOfflinePlayButtonDown));
-
-
+	SubscribeToEvent(mainMenu->GetHostBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnHostGameDown));
+	SubscribeToEvent(mainMenu->GetJoinBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnJoinGameDown));
 	SubscribeToEvent(mainMenu->GetQuitBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
 }
 
@@ -164,18 +171,18 @@ void DinosaurGame::SubscribeToEvents()
 	SubscribeToEvent(E_UPDATE,				URHO3D_HANDLER(DinosaurGame, HandleUpdate));
 	SubscribeToEvent(E_POSTUPDATE,			URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
 
-	SubscribeToEvent(pauseMenu->GetContinueBtn(),	E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnContinueButtonDown));
-	SubscribeToEvent(pauseMenu->GetQuitBtn(),		E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
+	SubscribeToEvent(gameMenu->GetContinueBtn(),	E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnContinueButtonDown));
+	SubscribeToEvent(gameMenu->GetQuitBtn(),		E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
 
 	UnsubscribeFromEvent(E_SCENEUPDATE);
 }
 
 void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
-	UpdatePauseMenuText(eventData[Update::P_TIMESTEP].GetFloat());
-
 	if (!cursor->IsVisible())
 	{
+		UpdatePauseMenuText(eventData[Update::P_TIMESTEP].GetFloat());
+
 		Input* input = GetSubsystem<Input>();
 
 		boidManager.Update(eventData[Update::P_TIMESTEP].GetFloat());
@@ -234,6 +241,15 @@ void DinosaurGame::OnOfflinePlayButtonDown(StringHash eventType, VariantMap& eve
 	StartGame();
 }
 
+void DinosaurGame::OnHostGameDown(StringHash eventType, VariantMap& eventData)
+{
+	mainMenu->Toggle();
+
+	playMode = PlayMode::HOST;
+
+	StartGame();
+}
+
 void DinosaurGame::OnQuitButtonDown(StringHash eventType, VariantMap& eventData)
 {
 	GetSubsystem<Console>()->SetVisible(false);
@@ -241,17 +257,26 @@ void DinosaurGame::OnQuitButtonDown(StringHash eventType, VariantMap& eventData)
 	engine_->Exit();
 }
 
+void DinosaurGame::OnJoinGameDown(StringHash eventType, VariantMap& eventData)
+{
+	mainMenu->Toggle();
+
+	playMode = PlayMode::CLIENT;
+
+	StartGame();
+}
+
 void DinosaurGame::TogglePauseMenu()
 {
-	pauseMenu->Toggle();
+	gameMenu->Toggle();
 
 	cursor->SetPosition({ 1024 / 2, 768 / 2 });
 
-	cursor->SetVisible(pauseMenu->IsShown());
+	cursor->SetVisible(gameMenu->IsShown());
 
 	scene_->SetUpdateEnabled(!cursor->IsVisible());
 
-	GetSubsystem<Input>()->SetMouseMode(pauseMenu->IsShown() ? MM_ABSOLUTE : MM_RELATIVE);
+	GetSubsystem<Input>()->SetMouseMode(gameMenu->IsShown() ? MM_ABSOLUTE : MM_RELATIVE);
 }
 
 void DinosaurGame::UpdatePauseMenuText(float delta)
@@ -266,7 +291,7 @@ void DinosaurGame::UpdatePauseMenuText(float delta)
 
 	int fps = 1.0f / delta;
 
-	pauseMenu->SetText(fps, boidManager.GetNumBoids(), NUM_BOID_THREADS);
+	gameMenu->SetText(fps, boidManager.GetNumBoids(), NUM_BOID_THREADS);
 }
 
 void DinosaurGame::UpdateCamera()

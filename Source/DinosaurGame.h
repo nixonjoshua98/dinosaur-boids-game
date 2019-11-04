@@ -12,8 +12,7 @@ namespace Urho3D
 class Character;
 class Touch;
 
-class PauseMenu;
-//class MainMenu;
+class Server;
 
 class _ObjectFactory;
 
@@ -99,7 +98,7 @@ private:
 
 	PlayMode playMode;
 
-	std::unique_ptr<PauseMenu> pauseMenu;
+	std::unique_ptr<GameMenu> gameMenu;
 	std::unique_ptr<MainMenu> mainMenu;
 
 	float pauseMenuUpdateTimer = 1.0f;
@@ -121,10 +120,16 @@ private:
 	void HandleKeyUp(StringHash eventType, VariantMap& eventData);
 	//
 
+	// Network Subs
+	void HandleNetworkMessage(StringHash eventType, VariantMap& eventData);
+
 	// Button Callbacks
 	void OnContinueButtonDown(StringHash eventType, VariantMap& eventData);
 	void OnOfflinePlayButtonDown(StringHash eventType, VariantMap& eventData);
+	void OnHostGameDown(StringHash eventType, VariantMap& eventData);
 	void OnQuitButtonDown(StringHash eventType, VariantMap& eventData);
+	void OnJoinGameDown(StringHash eventType, VariantMap& eventData);
+
 	//
 
 	void TogglePauseMenu();

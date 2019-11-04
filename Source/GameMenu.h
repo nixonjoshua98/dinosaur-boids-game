@@ -1,12 +1,12 @@
 
 #include "InterfaceBaseClass.h"
 
-class PauseMenu : public InterfaceBaseClass
+class GameMenu : public InterfaceBaseClass
 {
 
 public:
 
-	PauseMenu(UI*, ResourceCache*);
+	GameMenu(UI*, ResourceCache*);
 
 	void Create();
 	void Toggle();

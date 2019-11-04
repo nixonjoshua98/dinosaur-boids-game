@@ -7,6 +7,7 @@
 #include <Urho3D/Physics/CollisionShape.h>
 
 #include <Urho3D/Graphics/Model.h>
+#include <Urho3D/Graphics/Material.h>
 #include <Urho3D/Graphics/StaticModel.h>
 #include <Urho3D/Graphics/DebugRenderer.h>
 
@@ -40,6 +41,9 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	collisionShape = node->CreateComponent<CollisionShape>();
 
 	staticModel->SetModel(cache->GetResource<Model>("Models/Dinosaur.mdl"));
+	staticModel->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
+
+	node->SetScale(2.5f);
 
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
