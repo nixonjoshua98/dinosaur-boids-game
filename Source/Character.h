@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2016 the Urho3D project.
+// Copyright (c) 2008-2017 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -43,28 +43,31 @@ const float INAIR_THRESHOLD_TIME = 0.1f;
 /// Character component, responsible for physical movement according to controls, as well as animation.
 class Character : public LogicComponent
 {
-    URHO3D_OBJECT(Character, LogicComponent);
+	URHO3D_OBJECT(Character, LogicComponent);
 
 public:
-    /// Construct.
-    Character(Context* context);
-    
-    /// Register object factory and attributes.
-    static void RegisterObject(Context* context);
-    
-    /// Handle startup. Called by LogicComponent base class.
-    virtual void Start();
-    /// Handle physics world update. Called by LogicComponent base class.
-    virtual void FixedUpdate(float timeStep);
-    
-    /// Movement controls. Assigned by the main program each frame.
-    Controls controls_;
-    
-private:
-	bool onGround_;
-	bool okToJump_;
-	float inAirTimer_;
+	/// Construct.
+	Character(Context* context);
 
-    void HandleNodeCollision(StringHash eventType, VariantMap& eventData);
-	void SubscribeToEvents();
+	/// Register object factory and attributes.
+	static void RegisterObject(Context* context);
+
+	/// Handle startup. Called by LogicComponent base class.
+	virtual void Start();
+	/// Handle physics world update. Called by LogicComponent base class.
+	virtual void FixedUpdate(float timeStep);
+
+	/// Movement controls. Assigned by the main program each frame.
+	Controls controls_;
+
+private:
+	/// Handle physics collision event.
+	void HandleNodeCollision(StringHash eventType, VariantMap& eventData);
+
+	/// Grounded flag for movement.
+	bool onGround_;
+	/// Jump flag.
+	bool okToJump_;
+	/// In air timer. Due to possible physics inaccuracy, character can be off ground for max. 1/10 second and still be allowed to move.
+	float inAirTimer_;
 };

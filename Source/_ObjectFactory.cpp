@@ -57,31 +57,41 @@ void _ObjectFactory::SetScene(Scene* s)
 Character* _ObjectFactory::CreateCharacter(String name, Vector3 pos)
 {
 	Node* objectNode = scene->CreateChild(name);
-	AnimatedModel* object = objectNode->CreateComponent<AnimatedModel>();
-
 	objectNode->SetPosition(pos);
 
-	object->SetModel(cache->GetResource<Model>("Models/Jack.mdl"));
-	object->SetMaterial(cache->GetResource<Material>("Materials/Jack.xml"));
+	// spin node
+	Node* adjustNode = objectNode->CreateChild("AdjNode");
+	adjustNode->SetRotation(Quaternion(180, Vector3(0, 1, 0)));
+
+	// Create the rendering component + animation controller
+	AnimatedModel* object = adjustNode->CreateComponent<AnimatedModel>();
+	object->SetModel(cache->GetResource<Model>("Models/Mutant/Mutant.mdl"));
+	object->SetMaterial(cache->GetResource<Material>("Models/Mutant/Materials/mutant_M.xml"));
 	object->SetCastShadows(true);
+	adjustNode->CreateComponent<AnimationController>();
 
-	objectNode->CreateComponent<AnimationController>();
+	// Set the head bone for manual control
+	object->GetSkeleton().GetBone("Mutant:Head")->animated_ = false;
 
-	object->GetSkeleton().GetBone("Bip01_Head")->animated_ = false;
-
+	// Create rigidbody, and set non-zero mass so that the body becomes dynamic
 	RigidBody* body = objectNode->CreateComponent<RigidBody>();
-	CollisionShape* shape = objectNode->CreateComponent<CollisionShape>();
-
 	body->SetCollisionLayer(1);
 	body->SetMass(1.0f);
 
 	// Set zero angular factor so that physics doesn't turn the character on its own.
-	// Instead we will control the character yaw manually 
+	// Instead we will control the character yaw manually
 	body->SetAngularFactor(Vector3::ZERO);
+
+	// Set the rigidbody to signal collision also when in rest, so that we get ground collisions properly
 	body->SetCollisionEventMode(COLLISION_ALWAYS);
 
+	// Set a capsule shape for collision
+	CollisionShape* shape = objectNode->CreateComponent<CollisionShape>();
 	shape->SetCapsule(0.7f, 1.8f, Vector3(0.0f, 0.9f, 0.0f));
 
+	// Create the character logic component, which takes care of steering the rigidbody
+	// Remember it so that we can set the controls. Use a WeakPtr because the scene hierarchy already owns it
+	// and keeps it alive as long as it's not removed from the hierarchy
 	return objectNode->CreateComponent<Character>();
 }
 

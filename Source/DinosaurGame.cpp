@@ -143,6 +143,8 @@ void DinosaurGame::StartGame()
 {
 	CreateCharacter();
 
+	GetSubsystem<Input>()->SetMouseMode(MM_RELATIVE);
+
 	SubscribeToEvents();
 
 	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
@@ -161,7 +163,6 @@ void DinosaurGame::SubscribeToEvents()
 	SubscribeToEvent(E_KEYUP,				URHO3D_HANDLER(DinosaurGame, HandleKeyUp));
 	SubscribeToEvent(E_UPDATE,				URHO3D_HANDLER(DinosaurGame, HandleUpdate));
 	SubscribeToEvent(E_POSTUPDATE,			URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
-	SubscribeToEvent(E_POSTRENDERUPDATE,	URHO3D_HANDLER(DinosaurGame, HandlePostRenderUpdate));
 
 	SubscribeToEvent(pauseMenu->GetContinueBtn(),	E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnContinueButtonDown));
 	SubscribeToEvent(pauseMenu->GetQuitBtn(),		E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
@@ -217,11 +218,6 @@ void DinosaurGame::HandleKeyUp(StringHash eventType, VariantMap& eventData)
 		TogglePauseMenu();
 		break;
 	}
-}
-
-void DinosaurGame::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)
-{
-
 }
 
 void DinosaurGame::OnContinueButtonDown(StringHash eventType, VariantMap& eventData)
@@ -304,14 +300,11 @@ void DinosaurGame::UpdateCamera()
 		Quaternion rot = characterNode->GetRotation();
 		Quaternion dir = rot * Quaternion(character_->controls_.pitch_, Vector3::RIGHT);
 
-		Node* headNode = characterNode->GetChild("Bip01_Head", true);
-		float limitPitch = Clamp(character_->controls_.pitch_, -45.0f, 45.0f);
+		Node* headNode		= characterNode->GetChild("Mutant:Head", true);
+		float limitPitch	= Clamp(character_->controls_.pitch_, -45.0f, 45.0f);
+		Quaternion headDir	= rot * Quaternion(limitPitch, Vector3(1.0f, 0.0f, 0.0f));
 
-
-		Quaternion headDir = rot * Quaternion(limitPitch, Vector3(1.0f, 0.0f, 0.0f));
-
-		// This could be expanded to look at an arbitrary target, now just look at a point in front 
-		Vector3 headWorldTarget = headNode->GetWorldPosition() + headDir * Vector3(0.0f, 0.0f, 1.0f);
+		Vector3 headWorldTarget = headNode->GetWorldPosition() + headDir * Vector3(0.0f, 0.0f, -1.0f);
 		headNode->LookAt(headWorldTarget, Vector3(0.0f, 1.0f, 0.0f));
 
 		// Correct head orientation because LookAt assumes Z = forward, but the bone has been authored differently (Y = forward) 
@@ -324,10 +317,10 @@ void DinosaurGame::UpdateCamera()
 		}
 		else
 		{
-			Vector3 aimPoint = characterNode->GetPosition() + rot * Vector3(0.0f, 1.7f, 0.0f);
-
-			Vector3 rayDir = dir * Vector3::BACK;
-			float rayDistance = touch_ ? touch_->cameraDistance_ : CAMERA_INITIAL_DIST;  PhysicsRaycastResult result;
+			Vector3 aimPoint	= characterNode->GetPosition() + rot * Vector3(0.0f, 1.7f, 0.0f);
+			Vector3 rayDir		= dir * Vector3::BACK;
+			float rayDistance	= touch_ ? touch_->cameraDistance_ : CAMERA_INITIAL_DIST;
+			PhysicsRaycastResult result;
 			scene_->GetComponent<PhysicsWorld>()->RaycastSingle(result, Ray(aimPoint, rayDir), rayDistance, 2);
 
 			if (result.body_)
@@ -335,7 +328,8 @@ void DinosaurGame::UpdateCamera()
 
 			rayDistance = Clamp(rayDistance, CAMERA_MIN_DIST, CAMERA_MAX_DIST);
 
-			cameraNode_->SetPosition(aimPoint + rayDir * rayDistance);   cameraNode_->SetRotation(dir);
+			cameraNode_->SetPosition(aimPoint + rayDir * rayDistance); 
+			cameraNode_->SetRotation(dir);
 		}
 	}
 }
