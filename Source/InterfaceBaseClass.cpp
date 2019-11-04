@@ -1,61 +1,64 @@
 
+#include <Urho3D/UI/Font.h>
+#include <Urho3D/UI/Button.h>
+#include <Urho3D/UI/UIEvents.h>
+#include <Urho3D/UI/Text.h>
+#include <Urho3D/UI/UI.h>
+#include <Urho3D/UI/Window.h>
+#include <Urho3D/UI/LineEdit.h>
+#include <Urho3D/UI/UIEvents.h>
+#include <Urho3D/UI/CheckBox.h>
+
 #include <Urho3D/Resource/ResourceCache.h>
 
-#include <Urho3D/UI/UI.h>
-#include <Urho3D/UI/Font.h>
-#include <Urho3D/UI/Text.h>
-#include <Urho3D/UI/Button.h>
+using namespace Urho3D;
 
 #include "InterfaceBaseClass.h"
 
-InterfaceBaseClass::InterfaceBaseClass(ResourceCache* _cache)
+InterfaceBaseClass::InterfaceBaseClass(UI* _ui, ResourceCache* _cache)
 {
+	root = _ui->GetRoot();
 	cache = _cache;
+	ui = _ui;
 }
 
-Text* InterfaceBaseClass::CreateText(UIElement* parent, String str, HorizontalAlignment ha, Vector2 pos, bool isVisible)
+Window* InterfaceBaseClass::CreateWindow(String name, LayoutMode layMode, IntVector2 pos)
 {
-	Font* font = cache->GetResource<Font>("Fonts/Anonymous Pro.ttf");
-	Text* txt = parent->CreateChild<Text>("Text");
+	Context* context	= root->GetContext();
+	Window* menuWindow		= new Window(context);
+	
+	menuWindow->SetMinWidth(384);
+	menuWindow->SetLayout(layMode, 6, IntRect(6, 6, 6, 6));
+	menuWindow->SetAlignment(HA_CENTER, VA_CENTER);
+	menuWindow->SetName(name);
+	menuWindow->SetStyleAuto();
+	menuWindow->SetPosition(pos);
 
-	txt->SetFont(font, 16);
-
-	txt->SetTextAlignment(HA_LEFT);
-	txt->SetAlignment(ha, VA_TOP);
-
-	txt->SetPosition(pos.x_, pos.y_);
-
-	txt->SetVisible(isVisible);
-
-	txt->SetText(str);
-
-	txt->SetStyleAuto();
-
-	txt->SetStyle("Text");
-
-	return txt;
+	return menuWindow;
 }
 
-Button* InterfaceBaseClass::CreateButton(UIElement* parent, String str, IntVector2 pos, int w, int h, int size, bool isVisible)
+Button* InterfaceBaseClass::CreateButton(UIElement* parent, String label)
 {
-	Font* font = cache->GetResource<Font>("Fonts/Anonymous Pro.ttf");
+	Button* btn = parent->CreateChild<Button>();
+	Text* txt	= CreateText(btn, label);
 
-	Button* btn = parent->CreateChild<Button>("Button");
-	Text* txt	= btn->CreateChild<Text>("Text");
-
-	txt->SetFont(font, size);
-	txt->SetAlignment(HA_CENTER, VA_CENTER);
-	txt->SetText(str);
-
-	btn->SetPosition(pos);
-	btn->SetVisible(isVisible);
-
-	btn->SetFixedWidth(w);
-	btn->SetFixedHeight(h);
-
+	btn->SetMinHeight(24);
 	btn->SetStyleAuto();
 
-	btn->SetStyle("Button");
-
 	return btn;
+}
+
+Text* InterfaceBaseClass::CreateText(UIElement* parent, String label)
+{
+
+	Font* font = cache->GetResource<Font>("Fonts/Anonymous Pro.ttf");
+	Text* text = parent->CreateChild<Text>();
+
+	text->SetFont(font, 12);
+	text->SetAlignment(HA_CENTER, VA_CENTER);
+	text->SetText(label);
+	text->SetStyleAuto();
+
+	return text;
+
 }

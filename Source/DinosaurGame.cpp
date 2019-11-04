@@ -1,7 +1,9 @@
 
 #include <Urho3D/Core/CoreEvents.h>
 #include <Urho3D/Core/ProcessUtils.h>
+
 #include <Urho3D/Engine/Engine.h>
+
 #include <Urho3D/Graphics/AnimatedModel.h>
 #include <Urho3D/Graphics/AnimationController.h>
 #include <Urho3D/Graphics/Camera.h>
@@ -11,17 +13,27 @@
 #include <Urho3D/Graphics/Renderer.h>
 #include <Urho3D/Graphics/Zone.h>
 #include <Urho3D/Graphics/DebugRenderer.h>
+
 #include <Urho3D/Input/Input.h>
+
 #include <Urho3D/Physics/CollisionShape.h>
 #include <Urho3D/Physics/PhysicsWorld.h>
 #include <Urho3D/Physics/RigidBody.h>
+
 #include <Urho3D/Resource/ResourceCache.h>
+
 #include <Urho3D/Scene/Scene.h>
+
 #include <Urho3D/UI/Font.h>
 #include <Urho3D/UI/Button.h>
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/Text.h>
 #include <Urho3D/UI/UI.h>
+#include <Urho3D/UI/Window.h>
+#include <Urho3D/UI/LineEdit.h>
+#include <Urho3D/UI/UIEvents.h>
+#include <Urho3D/UI/CheckBox.h>
+
 
 #include <string>
 
@@ -35,19 +47,15 @@
 
 #include "DinosaurGame.h"
 
-
-
 URHO3D_DEFINE_APPLICATION_MAIN(DinosaurGame)
+
+
 
 DinosaurGame::DinosaurGame(Context* context) :
     Sample(context),
     firstPerson_(false)
 {
 	Character::RegisterObject(context);
-
-	GetSubsystem<UI>()->GetRoot()->SetDefaultStyle(GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/DefaultStyle.xml"));
-
-	pauseMenu = std::make_unique<PauseMenu>(GetSubsystem<UI>(), GetSubsystem<ResourceCache>());
 
 	AllocConsole();
 
@@ -64,19 +72,22 @@ void DinosaurGame::Start()
     Sample::Start();
 
 	CreateScene();
+
+	CreateInterface();
+
 	CreateCharacter();
 
 	SubscribeToEvents();
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
 
+	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
+
 	Sample::InitMouseMode(MM_RELATIVE);
 }
 
-inline void DinosaurGame::CreateScene()
+void DinosaurGame::CreateScene()
 {
-	pauseMenu->Create();
-
 	scene_ = factory.CreateScene(context_);
 
 	factory.SetScene(scene_);
@@ -93,11 +104,31 @@ inline void DinosaurGame::CreateScene()
 	factory.CreateZone();
 	factory.CreateLight(LIGHT_DIRECTIONAL);
 	factory.CreateFloor();
-
-	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
 }
 
-inline void DinosaurGame::CreateCharacter()
+void DinosaurGame::CreateInterface()
+{
+	auto timer = RealTimer("DinosaurGame::CreateInterface: ");
+
+	ResourceCache* cache	= GetSubsystem<ResourceCache>();
+	UI* ui					= GetSubsystem<UI>();
+	UIElement* root			= ui->GetRoot();
+
+	cursor = new Cursor(context_);
+
+	root->SetDefaultStyle(cache->GetResource<XMLFile>("UI/DefaultStyle.xml"));
+	cursor->SetStyleAuto(cache->GetResource<XMLFile>(root->GetAppliedStyle()));
+
+	ui->SetCursor(cursor);
+
+	cursor->SetVisible(false);
+
+	pauseMenu = std::make_unique<PauseMenu>(ui, cache);
+
+	pauseMenu->Create();
+}
+
+void DinosaurGame::CreateCharacter()
 {
 	Input* input = GetSubsystem<Input>();
 
@@ -113,39 +144,40 @@ void DinosaurGame::SubscribeToEvents()
 	SubscribeToEvent(E_POSTUPDATE,			URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
 	SubscribeToEvent(E_POSTRENDERUPDATE,	URHO3D_HANDLER(DinosaurGame, HandlePostRenderUpdate));
 
-	SubscribeToEvent(pauseMenu->GetContinueButton(),	E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnContinueButtonDown));
-	SubscribeToEvent(pauseMenu->GetQuitButton(),		E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
+	SubscribeToEvent(pauseMenu->GetContinueBtn(),	E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnContinueButtonDown));
+	SubscribeToEvent(pauseMenu->GetQuitBtn(),		E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
 
 	UnsubscribeFromEvent(E_SCENEUPDATE);
 }
 
-// Event Callbacks
-
 void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
-	//scene_->BeginThreadedUpdate();
-
-	Input* input = GetSubsystem<Input>();
-
-	boidManager.Update(eventData[Update::P_TIMESTEP].GetFloat());
-	
-	character_->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
-	character_->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
-	character_->controls_.Set(CTRL_LEFT, input->GetKeyDown(KEY_A));
-	character_->controls_.Set(CTRL_RIGHT, input->GetKeyDown(KEY_D));
-	character_->controls_.Set(CTRL_JUMP, input->GetKeyDown(KEY_SPACE));
-		
-	character_->controls_.yaw_ += (float)input->GetMouseMoveX() * YAW_SENSITIVITY;
-	character_->controls_.pitch_ += (float)input->GetMouseMoveY() * YAW_SENSITIVITY;
-	character_->controls_.pitch_ = Clamp(character_->controls_.pitch_, -80.0f, 80.0f);
-	character_->GetNode()->SetRotation(Quaternion(character_->controls_.yaw_, Vector3::UP));
-	
 	UpdatePauseMenuText(eventData[Update::P_TIMESTEP].GetFloat());
+
+	if (!cursor->IsVisible())
+	{
+		Input* input = GetSubsystem<Input>();
+
+		boidManager.Update(eventData[Update::P_TIMESTEP].GetFloat());
+
+		character_->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
+		character_->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
+		character_->controls_.Set(CTRL_LEFT, input->GetKeyDown(KEY_A));
+		character_->controls_.Set(CTRL_RIGHT, input->GetKeyDown(KEY_D));
+		character_->controls_.Set(CTRL_JUMP, input->GetKeyDown(KEY_SPACE));
+
+		character_->controls_.yaw_ += (float)input->GetMouseMoveX() * YAW_SENSITIVITY;
+		character_->controls_.pitch_ += (float)input->GetMouseMoveY() * YAW_SENSITIVITY;
+		character_->controls_.pitch_ = Clamp(character_->controls_.pitch_, -80.0f, 80.0f);
+
+		character_->GetNode()->SetRotation(Quaternion(character_->controls_.yaw_, Vector3::UP));
+	}
 }
 
 void DinosaurGame::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
 {
-	UpdateCamera();
+	if (!cursor->IsVisible())
+		UpdateCamera();
 }
 
 void DinosaurGame::HandleKeyUp(StringHash eventType, VariantMap& eventData)
@@ -170,12 +202,7 @@ void DinosaurGame::HandleKeyUp(StringHash eventType, VariantMap& eventData)
 
 void DinosaurGame::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)
 {
-	//auto tree = scene_->GetComponent<Octree>();
-
-	//tree->DrawDebugGeometry(true);
 }
-
-// Button callbacks
 
 void DinosaurGame::OnContinueButtonDown(StringHash eventType, VariantMap& eventData)
 {
@@ -189,20 +216,20 @@ void DinosaurGame::OnQuitButtonDown(StringHash eventType, VariantMap& eventData)
 	engine_->Exit();
 }
 
-inline void DinosaurGame::TogglePauseMenu()
+void DinosaurGame::TogglePauseMenu()
 {
-	Input* input = GetSubsystem<Input>();
-
 	pauseMenu->Toggle();
 
-	input->SetMouseMode(pauseMenu->IsShown() ? MM_ABSOLUTE : MM_RELATIVE);
+	cursor->SetPosition({ 1024 / 2, 768 / 2 });
 
-	input->SetMousePosition({ 1024 / 2, 768 / 2 });
+	cursor->SetVisible(pauseMenu->IsShown());
+
+	scene_->SetUpdateEnabled(!cursor->IsVisible());
+
+	GetSubsystem<Input>()->SetMouseMode(pauseMenu->IsShown() ? MM_ABSOLUTE : MM_RELATIVE);
 }
 
-//
-
-inline void DinosaurGame::UpdatePauseMenuText(float delta)
+void DinosaurGame::UpdatePauseMenuText(float delta)
 {
 	prevDelta = delta;
 
@@ -214,11 +241,10 @@ inline void DinosaurGame::UpdatePauseMenuText(float delta)
 
 	int fps = 1.0f / delta;
 
-	pauseMenu->SetFPS(fps);
-	pauseMenu->SetBoidCount(boidManager.GetNumBoids());
+	pauseMenu->SetText(fps, boidManager.GetNumBoids(), NUM_BOID_THREADS);
 }
 
-inline void DinosaurGame::UpdateCamera()
+void DinosaurGame::UpdateCamera()
 {
 	bool freeCam = false;
 

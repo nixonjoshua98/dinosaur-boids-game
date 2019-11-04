@@ -41,8 +41,6 @@ public:
 	Vector3 GetPosition();
 	Vector3 GetLinearVelocity();
 
-	bool IsVisible();
-
 private:
 	Vector3 force;
 

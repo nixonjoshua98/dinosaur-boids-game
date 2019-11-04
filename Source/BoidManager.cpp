@@ -51,7 +51,7 @@ void BoidManager::Update(float delta)
 {
 	deltaTime = delta;
 
-	SpawnBoid(Max(1, delta * 100));
+	SpawnBoid(Max(1, delta * 250));
 
 	UpdateNeighbourMap();
 
@@ -98,8 +98,6 @@ void BoidManager::UpdateThread(int threadID)
 
 				if (hasNeighbours)
 					continue;
-
-				//if (boids[i]->IsVisible()) continue;
 
 				boids[i]->ComputeForce(boidNeighbourMap[key]);
 

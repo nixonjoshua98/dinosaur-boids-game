@@ -7,8 +7,6 @@ namespace Urho3D
 	class ResourceCache;
 }
 
-using namespace Urho3D;
-
 class PauseMenu : public InterfaceBaseClass
 {
 public:
@@ -18,23 +16,28 @@ public:
 	void Create();
 	void Toggle();
 
-	void SetFPS(int fps);
-	void SetBoidCount(int count);
-
-	Button* GetContinueButton() { return continueBtn; }
-	Button* GetQuitButton() { return quitBtn; }
+	void SetText(int, int, int);
 
 	bool IsShown() { return isShowing; }
 
+	Button* GetQuitBtn() { return quitBtn; };
+	Button* GetContinueBtn() { return continueBtn; };
+
 private:
-	UIElement* root;
 
-	bool isShowing = false;
-
-	Text* controlsText;
-	Text* FPSText;
-	Text* boidText;
+	// Widgets
+	SharedPtr<Window> menuWindow;
+	SharedPtr<Window> debugWindow;
+	SharedPtr<Window> controlsWindow;
 
 	Button* continueBtn;
 	Button* quitBtn;
+
+	Text* fpsText;
+	Text* boidText;
+	Text* threadText;
+	Text* controlsText;
+
+	bool isShowing = false;
+
 };

@@ -86,21 +86,28 @@ private:
 	BoidManager boidManager;
 
     void CreateScene();
+	void CreateInterface();
     void CreateCharacter();
 
     void SubscribeToEvents();
 
+	// Game Subscriptions
 	void HandleUpdate(StringHash eventType, VariantMap& eventData);
     void HandlePostUpdate(StringHash eventType, VariantMap& eventData);
 	void HandleKeyUp(StringHash eventType, VariantMap& eventData);
 	void HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData);
+	//
 
+	// Pause Menu Callbacks
 	void OnContinueButtonDown(StringHash eventType, VariantMap& eventData);
 	void OnQuitButtonDown(StringHash eventType, VariantMap& eventData);
+	//
 
 	void TogglePauseMenu();
 
 	std::unique_ptr<PauseMenu> pauseMenu;
+
+	SharedPtr<Cursor> cursor;
 
 	void UpdatePauseMenuText(float);
 	void UpdateCamera();

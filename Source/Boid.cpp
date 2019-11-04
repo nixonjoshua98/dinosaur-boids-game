@@ -44,7 +44,7 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
 
-	rigidBody->SetPosition({Random(-150.0f, 150.0f), 0.5f, Random(-150.0f, 150.0f) });
+	rigidBody->SetPosition({Random(-150.0f, 150.0f), 0.0f, Random(-150.0f, 150.0f) });
 
 	rigidBody->SetLinearVelocity({ Random(-20.0f, 20.0f), 0.0f, Random(-20.0f, 20.0f) });
 }
@@ -55,6 +55,8 @@ void Boid::Update(float tm)
 
 	Vector3 vel = GetLinearVelocity();
 
+	vel.y_ = 0.0f;
+
 	float d = Clamp(vel.Length(), 10.0f, 50.0f);
 
 	rigidBody->SetLinearVelocity(vel.Normalized() * d);
@@ -63,7 +65,7 @@ void Boid::Update(float tm)
 
 	Vector3 currentPos = GetPosition();
 
-	currentPos.y_ = 0.5f;
+	currentPos.y_ = 0.0f;
 
 	rigidBody->SetPosition(currentPos);
 }
@@ -123,9 +125,4 @@ Vector3 Boid::GetPosition()
 Vector3 Boid::GetLinearVelocity()
 {
 	return rigidBody->GetLinearVelocity();
-}
-
-bool Boid::IsVisible()
-{
-	return staticModel->IsInView();
 }
