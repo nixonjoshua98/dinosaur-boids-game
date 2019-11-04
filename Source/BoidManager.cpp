@@ -6,12 +6,20 @@
 #include "BoidManager.h"
 #include "RealTimer.h"
 
+BoidManager::BoidManager()
+{
+	boids = new Boid * [MAX_NUM_BOIDS];
+}
+
 BoidManager::~BoidManager()
 {
 	Stop();
 
 	for (std::thread& t : threads)
-		t.join();
+	{
+		if (t.joinable())
+			t.join();
+	}
 
 	for (int i = 0; i < numBoids; i++)
 		delete boids[i];
@@ -35,7 +43,6 @@ void BoidManager::Initialise(ResourceCache* _cache, Scene* _scene)
 		}
 	}
 
-	boids	= new Boid * [MAX_NUM_BOIDS];
 	threads	= std::vector<std::thread>(NUM_BOID_THREADS);
 
 	for (auto i = 0; i < threads.size(); i++)

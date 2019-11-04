@@ -27,7 +27,7 @@ enum class BoidsUpdateEnum
 class BoidManager
 {
 public:
-
+	BoidManager();
 	~BoidManager();
 	
 	void Initialise(ResourceCache*, Scene* scene);

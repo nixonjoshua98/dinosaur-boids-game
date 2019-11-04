@@ -22,6 +22,13 @@ class _ObjectFactory;
 #include <memory>
 #include <iostream>
 
+enum class PlayMode
+{
+	OFFLINE,
+	HOST,
+	CLIENT
+};
+
 
 class DinosaurGame : public Sample
 {
@@ -90,6 +97,8 @@ private:
 	BoidManager boidManager;
 	_ObjectFactory factory;
 
+	PlayMode playMode;
+
 	std::unique_ptr<PauseMenu> pauseMenu;
 	std::unique_ptr<MainMenu> mainMenu;
 
@@ -101,6 +110,9 @@ private:
 	void CreateInterface();
     void CreateCharacter();
 
+	void StartGame();
+
+	void SubscribeToMainMenuEvents();
     void SubscribeToEvents();
 
 	// Game Subscriptions
@@ -110,8 +122,9 @@ private:
 	void HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData);
 	//
 
-	// Pause Menu Callbacks
+	// Button Callbacks
 	void OnContinueButtonDown(StringHash eventType, VariantMap& eventData);
+	void OnOfflinePlayButtonDown(StringHash eventType, VariantMap& eventData);
 	void OnQuitButtonDown(StringHash eventType, VariantMap& eventData);
 	//
 

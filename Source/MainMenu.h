@@ -10,6 +10,11 @@ public:
 	void Create();
 	void Toggle();
 
+	Button* GetPlayBtn() { return offlinePlayBtn; };
+	Button* GetHostBtn() { return hostOnlineBtn; };
+	Button* GetJoinBtn() { return joinOnlineBtn; };
+	Button* GetQuitBtn() { return quitBtn;  };
+
 	bool IsShown() { return isShowing; }
 
 private:

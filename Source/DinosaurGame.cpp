@@ -77,15 +77,11 @@ void DinosaurGame::Start()
 
 	CreateInterface();
 
-	CreateCharacter();
-
-	SubscribeToEvents();
-
-	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
+	SubscribeToMainMenuEvents();
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
 
-	Sample::InitMouseMode(MM_RELATIVE);
+	Sample::InitMouseMode(MM_ABSOLUTE);
 }
 
 void DinosaurGame::CreateScene()
@@ -125,6 +121,8 @@ void DinosaurGame::CreateInterface()
 
 	cursor->SetVisible(false);
 
+	cursor->SetPosition({ 1024 / 2, 768 / 2 });
+
 	pauseMenu	= std::make_unique<PauseMenu>(ui, cache);
 	mainMenu	= std::make_unique<MainMenu>(ui, cache);
 
@@ -139,6 +137,23 @@ void DinosaurGame::CreateCharacter()
 	character_ = factory.CreateCharacter("Jack", { 0.0f, 1.0f, 0.0f });
 
 	character_->controls_.Set(CTRL_FORWARD | CTRL_BACK | CTRL_LEFT | CTRL_RIGHT | CTRL_JUMP, false);
+}
+
+void DinosaurGame::StartGame()
+{
+	CreateCharacter();
+
+	SubscribeToEvents();
+
+	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
+}
+
+void DinosaurGame::SubscribeToMainMenuEvents()
+{
+	SubscribeToEvent(mainMenu->GetPlayBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnOfflinePlayButtonDown));
+
+
+	SubscribeToEvent(mainMenu->GetQuitBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
 }
 
 void DinosaurGame::SubscribeToEvents()
@@ -206,11 +221,21 @@ void DinosaurGame::HandleKeyUp(StringHash eventType, VariantMap& eventData)
 
 void DinosaurGame::HandlePostRenderUpdate(StringHash eventType, VariantMap& eventData)
 {
+
 }
 
 void DinosaurGame::OnContinueButtonDown(StringHash eventType, VariantMap& eventData)
 {
 	TogglePauseMenu();
+}
+
+void DinosaurGame::OnOfflinePlayButtonDown(StringHash eventType, VariantMap& eventData)
+{
+	mainMenu->Toggle();
+
+	playMode = PlayMode::OFFLINE;
+
+	StartGame();
 }
 
 void DinosaurGame::OnQuitButtonDown(StringHash eventType, VariantMap& eventData)

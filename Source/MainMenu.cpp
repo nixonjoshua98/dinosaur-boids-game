@@ -17,7 +17,9 @@ void MainMenu::Create()
 
 	root->AddChild(window);
 
-	//window->SetVisible(false);
+	window->SetVisible(true);
+
+	isShowing = true;
 }
 
 void MainMenu::Toggle()
