@@ -123,9 +123,11 @@ void _ObjectFactory::CreateLight(LightType lightType)
 
 void _ObjectFactory::CreateFloor()
 {
-	Node* floorNode = scene->CreateChild("Floor");
+	Node* floorNode = scene->CreateChild();
 	StaticModel* model = floorNode->CreateComponent<StaticModel>();
 	RigidBody* body = floorNode->CreateComponent<RigidBody>();
+
+	floorNode->SetName("Floor");
 
 	floorNode->SetPosition(Vector3(0.0f, -0.5f, 0.0f));
 	floorNode->SetScale(Vector3(FLOOR_SIZE, 1.0f, FLOOR_SIZE));

@@ -17,28 +17,57 @@ using namespace Urho3D;
 
 InterfaceBaseClass::InterfaceBaseClass(UI* _ui, ResourceCache* _cache)
 {
+
 	root = _ui->GetRoot();
 	cache = _cache;
 	ui = _ui;
+
 }
 
-Window* InterfaceBaseClass::CreateWindow(String name, LayoutMode layMode, IntVector2 pos)
+void InterfaceBaseClass::Toggle()
 {
-	Context* context	= root->GetContext();
-	Window* menuWindow		= new Window(context);
-	
-	menuWindow->SetMinWidth(384);
-	menuWindow->SetLayout(layMode, 6, IntRect(6, 6, 6, 6));
-	menuWindow->SetAlignment(HA_CENTER, VA_CENTER);
-	menuWindow->SetName(name);
-	menuWindow->SetStyleAuto();
-	menuWindow->SetPosition(pos);
+	isShowing = !isShowing;
 
-	return menuWindow;
+	window->SetVisible(isShowing);
+}
+
+void InterfaceBaseClass::Hide()
+{
+	isShowing = true;
+
+	Toggle();
+}
+
+void InterfaceBaseClass::Show()
+{
+	isShowing = false;
+
+	Toggle();
+}
+
+Window* InterfaceBaseClass::CreateWindow(String name)
+{
+	return CreateWindow(name, LM_VERTICAL, { 0, 0 }, 384);
+}
+
+Window* InterfaceBaseClass::CreateWindow(String name, LayoutMode layout, IntVector2 pos)
+{
+	return CreateWindow(name, layout, pos, 384);
+}
+
+Window* InterfaceBaseClass::CreateWindow(String name, IntVector2 pos)
+{
+	return CreateWindow(name, LM_VERTICAL, pos, 384);
+}
+
+Window* InterfaceBaseClass::CreateWindow(String name, IntVector2 pos, int width)
+{
+	return CreateWindow(name, LM_VERTICAL, pos, width);
 }
 
 Button* InterfaceBaseClass::CreateButton(UIElement* parent, String label)
 {
+
 	Button* btn = parent->CreateChild<Button>();
 	Text* txt	= CreateText(btn, label);
 
@@ -46,6 +75,7 @@ Button* InterfaceBaseClass::CreateButton(UIElement* parent, String label)
 	btn->SetStyleAuto();
 
 	return btn;
+
 }
 
 Text* InterfaceBaseClass::CreateText(UIElement* parent, String label)
@@ -61,4 +91,19 @@ Text* InterfaceBaseClass::CreateText(UIElement* parent, String label)
 
 	return text;
 
+}
+
+Window* InterfaceBaseClass::CreateWindow(String name, LayoutMode layout, IntVector2 pos, int width)
+{
+	Context* context = root->GetContext();
+	Window* window = new Window(context);
+
+	window->SetMinWidth(width);
+	window->SetLayout(layout, 6, IntRect(6, 6, 6, 6));
+	window->SetAlignment(HA_CENTER, VA_CENTER);
+	window->SetName(name);
+	window->SetStyleAuto();
+	window->SetPosition(pos);
+
+	return window;
 }

@@ -11,22 +11,12 @@ namespace Urho3D
 
 class Character;
 class Touch;
-
-class Server;
-
 class _ObjectFactory;
 
 #include "BoidManager.h"
 
 #include <memory>
 #include <iostream>
-
-enum class PlayMode
-{
-	OFFLINE,
-	HOST,
-	CLIENT
-};
 
 
 class DinosaurGame : public Sample
@@ -93,47 +83,52 @@ private:
 
 	bool firstPerson_;
 
+
+	// - - - - - - - - - - - - -
 	BoidManager boidManager;
+
 	_ObjectFactory factory;
-
-	PlayMode playMode;
-
-	std::unique_ptr<GameMenu> gameMenu;
-	std::unique_ptr<MainMenu> mainMenu;
 
 	float pauseMenuUpdateTimer = 1.0f;
 
-	float prevDelta;
+	// UI
+	std::unique_ptr<GameMenu> pauseMenu;
+	std::unique_ptr<MainMenu> mainMenu;
+	std::unique_ptr<DebugWindow> debugWindow;
+	std::unique_ptr<ScoreWindow> scoreWindow;
+	std::unique_ptr<ControlsWindow> controlsWindow;
 
-    void CreateScene();
-	void CreateInterface();
-    void CreateCharacter();
-
+	void CreateScene();
 	void StartGame();
+	void InitialiseInterface();
+	void CreateCharacter();
+	void SubscribeToGameEvents();
 
-	void SubscribeToMainMenuEvents();
-    void SubscribeToEvents();
+	void UpdateUI(float);
+	void UpdateCamera(float);
 
-	// Game Subscriptions
-	void HandleUpdate(StringHash eventType, VariantMap& eventData);
-    void HandlePostUpdate(StringHash eventType, VariantMap& eventData);
-	void HandleKeyUp(StringHash eventType, VariantMap& eventData);
-	//
+	// UI
+	void SetupMainMenu();
+	void SetupPauseMenu();
+	void ToggleGamePause();
 
-	// Network Subs
-	void HandleNetworkMessage(StringHash eventType, VariantMap& eventData);
+	// Main Menu Callbacks
+	void MM_OfflinePlayBtnDown(StringHash, VariantMap&);
+	void MM_HostGameBtnDown(StringHash, VariantMap&);
+	void MM_JoinGameBtnDown(StringHash, VariantMap&);
+	void MM_QuitGameBtnDown(StringHash, VariantMap&);
 
-	// Button Callbacks
-	void OnContinueButtonDown(StringHash eventType, VariantMap& eventData);
-	void OnOfflinePlayButtonDown(StringHash eventType, VariantMap& eventData);
-	void OnHostGameDown(StringHash eventType, VariantMap& eventData);
-	void OnQuitButtonDown(StringHash eventType, VariantMap& eventData);
-	void OnJoinGameDown(StringHash eventType, VariantMap& eventData);
+	// Pause Menu Callbacks
+	void PM_ContinueBtnDown(StringHash, VariantMap&);
+	void PM_QuitBtnDown(StringHash, VariantMap&);
 
-	//
+	// Event Callbacks
+	void HandleUpdate(StringHash, VariantMap&);
+	void HandlePostUpdate(StringHash, VariantMap&);
+	void HandleKeyUp(StringHash, VariantMap&);
 
-	void TogglePauseMenu();
-
-	void UpdatePauseMenuText(float);
-	void UpdateCamera();
+	void ToggleFullscreen();
+	void AddConsole();
+	void Quit();
+	// - - - - - - - - - - - - -
 };

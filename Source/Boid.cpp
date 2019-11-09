@@ -9,7 +9,6 @@
 #include <Urho3D/Graphics/Model.h>
 #include <Urho3D/Graphics/Material.h>
 #include <Urho3D/Graphics/StaticModel.h>
-#include <Urho3D/Graphics/DebugRenderer.h>
 
 #include <iostream>
 
@@ -48,7 +47,9 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
 
-	rigidBody->SetPosition({Random(-150.0f, 150.0f), 0.0f, Random(-150.0f, 150.0f) });
+	collisionShape->SetBox(Vector3::ONE  * 0.2f);
+
+	rigidBody->SetPosition({Random(-150.0f, 150.0f), 0.25f, Random(-150.0f, 150.0f) });
 
 	rigidBody->SetLinearVelocity({ Random(-20.0f, 20.0f), 0.0f, Random(-20.0f, 20.0f) });
 }
@@ -69,7 +70,7 @@ void Boid::Update(float tm)
 
 	Vector3 currentPos = GetPosition();
 
-	currentPos.y_ = 0.0f;
+	currentPos.y_ = 0.25f;
 
 	rigidBody->SetPosition(currentPos);
 }

@@ -19,14 +19,30 @@ class InterfaceBaseClass
 public:
 	InterfaceBaseClass(UI*, ResourceCache*);
 
+	void Toggle();
+	void Hide();
+	void Show();
+
+	bool IsShown() { return isShowing; }
+
 protected:
 	UI* ui;
 	UIElement* root;
 	ResourceCache* cache;
 
-	bool isShowing = false;
+	SharedPtr<Window> window;
 
-	Window* CreateWindow(String, LayoutMode = LM_VERTICAL, IntVector2 pos = IntVector2::ZERO);
+	bool isShowing = false;
+	bool isCreated = false;
+
+	Window* CreateWindow(String);
+	Window* CreateWindow(String, LayoutMode, IntVector2);
+	Window* CreateWindow(String, IntVector2);
+	Window* CreateWindow(String, IntVector2, int);
+
 	Button* CreateButton(UIElement*, String);
 	Text* CreateText(UIElement*, String);
+
+private:
+	Window* CreateWindow(String name, LayoutMode layout, IntVector2 pos, int width);
 };

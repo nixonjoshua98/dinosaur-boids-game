@@ -25,6 +25,8 @@
 #include <Urho3D/Input/Controls.h>
 #include <Urho3D/Scene/LogicComponent.h>
 
+class PlayerMissile;
+
 using namespace Urho3D;
 
 const int CTRL_FORWARD = 1;
@@ -33,7 +35,7 @@ const int CTRL_LEFT = 4;
 const int CTRL_RIGHT = 8;
 const int CTRL_JUMP = 16;
 
-const float MOVE_FORCE = 0.8f;
+const float MOVE_FORCE = 1.1f;
 const float INAIR_MOVE_FORCE = 0.02f;
 const float BRAKE_FORCE = 0.2f;
 const float JUMP_FORCE = 7.0f;
@@ -60,9 +62,12 @@ public:
 	/// Movement controls. Assigned by the main program each frame.
 	Controls controls_;
 
+	int GetScore() { return score; }
+
 private:
 	/// Handle physics collision event.
 	void HandleNodeCollision(StringHash eventType, VariantMap& eventData);
+	void HandleCollisionStart(StringHash eventType, VariantMap& eventData);
 
 	/// Grounded flag for movement.
 	bool onGround_;
@@ -70,4 +75,8 @@ private:
 	bool okToJump_;
 	/// In air timer. Due to possible physics inaccuracy, character can be off ground for max. 1/10 second and still be allowed to move.
 	float inAirTimer_;
+
+	PlayerMissile* missile;
+
+	int score = 0;
 };

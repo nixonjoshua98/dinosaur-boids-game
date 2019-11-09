@@ -52,8 +52,8 @@ private:
 	Scene*			scene;
 	ResourceCache*	cache;
 
-	bool isRunning	= true;
-	float deltaTime = 0.0f;
+	bool isRunning		= true;
+	float deltaTime		= 0.0f;
 
 	unsigned int currentFrame	= -1;
 	unsigned int numBoids		= 0;

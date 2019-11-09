@@ -47,28 +47,28 @@
 
 #include "_ObjectFactory.h"
 
+
+// Interface
 #include "MainMenu.h"
-#include "GameMenu.h"
+#include "PauseMenu.h"
+
+#include "ScoreWindow.h"
+#include "DebugWindow.h"
+#include "ControlsWindow.h"
 
 #include "RealTimer.h"
 #include "Constants.h"
 
 #include "DinosaurGame.h"
 
-
 URHO3D_DEFINE_APPLICATION_MAIN(DinosaurGame)
 
-#undef SendMessage
 
 DinosaurGame::DinosaurGame(Context* context) :
     Sample(context),
     firstPerson_(false)
 {
 	Character::RegisterObject(context);
-
-	AllocConsole();
-
-	freopen("CONOUT$", "w", stdout);
 }
 
 DinosaurGame::~DinosaurGame()
@@ -79,16 +79,135 @@ DinosaurGame::~DinosaurGame()
 void DinosaurGame::Start()
 {
 	Sample::Start();
+	
+	//AddConsole();
 
 	CreateScene();
 
-	CreateInterface();
+	InitialiseInterface();
 
-	SubscribeToMainMenuEvents();
+	SetupMainMenu();
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
 
 	Sample::InitMouseMode(MM_ABSOLUTE);
+}
+
+void DinosaurGame::StartGame()
+{
+	SetupPauseMenu();
+
+	debugWindow->Create();
+	scoreWindow->Create();
+
+	CreateCharacter();
+
+	GetSubsystem<Input>()->SetMouseMode(MM_RELATIVE);
+
+	SubscribeToGameEvents();
+
+	mainMenu->Hide();
+	debugWindow->Hide();
+
+	scoreWindow->Show();
+
+	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
+}
+
+void DinosaurGame::InitialiseInterface()
+{
+	ResourceCache* cache = GetSubsystem<ResourceCache>();
+	UI* ui = GetSubsystem<UI>();
+	UIElement* root = ui->GetRoot();
+
+	cursor = new Cursor(context_);
+
+	root->SetDefaultStyle(cache->GetResource<XMLFile>("UI/DefaultStyle.xml"));
+	cursor->SetStyleAuto(cache->GetResource<XMLFile>(root->GetAppliedStyle()));
+
+	ui->SetCursor(cursor);
+
+	cursor->SetVisible(false);
+
+	cursor->SetPosition({ 1024 / 2, 768 / 2 });
+
+	pauseMenu		= std::make_unique<GameMenu>(ui, cache);
+	mainMenu		= std::make_unique<MainMenu>(ui, cache);
+	debugWindow		= std::make_unique<DebugWindow>(ui, cache);
+	scoreWindow		= std::make_unique<ScoreWindow>(ui, cache);
+	controlsWindow	= std::make_unique<ControlsWindow>(ui, cache);
+
+	controlsWindow->Create();
+	controlsWindow->Show();
+}
+
+void DinosaurGame::SetupMainMenu()
+{
+	mainMenu->Create();
+
+	mainMenu->Show();
+
+	SubscribeToEvent(mainMenu->offlinePlayBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, MM_OfflinePlayBtnDown));
+	SubscribeToEvent(mainMenu->hostOnlineBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, MM_HostGameBtnDown));
+	SubscribeToEvent(mainMenu->joinOnlineBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, MM_JoinGameBtnDown));
+	SubscribeToEvent(mainMenu->quitBtn,			E_RELEASED, URHO3D_HANDLER(DinosaurGame, MM_QuitGameBtnDown));
+}
+
+void DinosaurGame::SetupPauseMenu()
+{
+	pauseMenu->Create();
+
+	pauseMenu->Hide();
+
+	SubscribeToEvent(pauseMenu->continueBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, PM_ContinueBtnDown));
+	SubscribeToEvent(pauseMenu->quitBtn,		E_RELEASED, URHO3D_HANDLER(DinosaurGame, PM_QuitBtnDown));
+}
+
+void DinosaurGame::MM_OfflinePlayBtnDown(StringHash, VariantMap&)
+{
+	StartGame();
+}
+
+void DinosaurGame::MM_HostGameBtnDown(StringHash, VariantMap&)
+{
+
+}
+
+void DinosaurGame::MM_JoinGameBtnDown(StringHash, VariantMap&)
+{
+
+}
+
+void DinosaurGame::MM_QuitGameBtnDown(StringHash, VariantMap&)
+{
+	Quit();
+}
+
+void DinosaurGame::PM_ContinueBtnDown(StringHash, VariantMap&)
+{
+	ToggleGamePause();
+}
+
+void DinosaurGame::PM_QuitBtnDown(StringHash, VariantMap&)
+{
+	Quit();
+}
+
+void DinosaurGame::ToggleFullscreen()
+{
+	GetSubsystem<Graphics>()->ToggleFullscreen();
+}
+
+void DinosaurGame::AddConsole()
+{
+	AllocConsole();
+
+	freopen("CONOUT$", "w", stdout);
+}
+
+void DinosaurGame::Quit()
+{
+	engine_->Exit();
 }
 
 void DinosaurGame::CreateScene()
@@ -111,32 +230,6 @@ void DinosaurGame::CreateScene()
 	factory.CreateFloor();
 }
 
-void DinosaurGame::CreateInterface()
-{
-	auto timer = RealTimer("DinosaurGame::CreateInterface: ");
-
-	ResourceCache* cache	= GetSubsystem<ResourceCache>();
-	UI* ui					= GetSubsystem<UI>();
-	UIElement* root			= ui->GetRoot();
-
-	cursor = new Cursor(context_);
-
-	root->SetDefaultStyle(cache->GetResource<XMLFile>("UI/DefaultStyle.xml"));
-	cursor->SetStyleAuto(cache->GetResource<XMLFile>(root->GetAppliedStyle()));
-
-	ui->SetCursor(cursor);
-
-	cursor->SetVisible(false);
-
-	cursor->SetPosition({ 1024 / 2, 768 / 2 });
-
-	gameMenu	= std::make_unique<GameMenu>(ui, cache);
-	mainMenu	= std::make_unique<MainMenu>(ui, cache);
-
-	mainMenu->Create();
-	gameMenu->Create();
-}
-
 void DinosaurGame::CreateCharacter()
 {
 	Input* input = GetSubsystem<Input>();
@@ -146,33 +239,11 @@ void DinosaurGame::CreateCharacter()
 	character_->controls_.Set(CTRL_FORWARD | CTRL_BACK | CTRL_LEFT | CTRL_RIGHT | CTRL_JUMP, false);
 }
 
-void DinosaurGame::StartGame()
-{
-	CreateCharacter();
-
-	GetSubsystem<Input>()->SetMouseMode(MM_RELATIVE);
-
-	SubscribeToEvents();
-
-	boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
-}
-
-void DinosaurGame::SubscribeToMainMenuEvents()
-{
-	SubscribeToEvent(mainMenu->GetPlayBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnOfflinePlayButtonDown));
-	SubscribeToEvent(mainMenu->GetHostBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnHostGameDown));
-	SubscribeToEvent(mainMenu->GetJoinBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnJoinGameDown));
-	SubscribeToEvent(mainMenu->GetQuitBtn(), E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
-}
-
-void DinosaurGame::SubscribeToEvents()
+void DinosaurGame::SubscribeToGameEvents()
 {
 	SubscribeToEvent(E_KEYUP,				URHO3D_HANDLER(DinosaurGame, HandleKeyUp));
 	SubscribeToEvent(E_UPDATE,				URHO3D_HANDLER(DinosaurGame, HandleUpdate));
 	SubscribeToEvent(E_POSTUPDATE,			URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
-
-	SubscribeToEvent(gameMenu->GetContinueBtn(),	E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnContinueButtonDown));
-	SubscribeToEvent(gameMenu->GetQuitBtn(),		E_RELEASED, URHO3D_HANDLER(DinosaurGame, OnQuitButtonDown));
 
 	UnsubscribeFromEvent(E_SCENEUPDATE);
 }
@@ -181,7 +252,7 @@ void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
 	if (!cursor->IsVisible())
 	{
-		UpdatePauseMenuText(eventData[Update::P_TIMESTEP].GetFloat());
+		UpdateUI(eventData[Update::P_TIMESTEP].GetFloat());
 
 		Input* input = GetSubsystem<Input>();
 
@@ -204,7 +275,7 @@ void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 void DinosaurGame::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
 {
 	if (!cursor->IsVisible())
-		UpdateCamera();
+		UpdateCamera(eventData[PostUpdate::P_TIMESTEP].GetFloat());
 }
 
 void DinosaurGame::HandleKeyUp(StringHash eventType, VariantMap& eventData)
@@ -218,83 +289,49 @@ void DinosaurGame::HandleKeyUp(StringHash eventType, VariantMap& eventData)
 		break;
 
 	case KEY_F11:
-		GetSubsystem<Graphics>()->ToggleFullscreen();
+		ToggleFullscreen();
 		break;
 
 	case KEY_ESCAPE:
-		TogglePauseMenu();
+		ToggleGamePause();
 		break;
 	}
 }
 
-void DinosaurGame::OnContinueButtonDown(StringHash eventType, VariantMap& eventData)
+void DinosaurGame::ToggleGamePause()
 {
-	TogglePauseMenu();
-}
+	pauseMenu->Toggle();
+	debugWindow->Toggle();
+	scoreWindow->Toggle();
 
-void DinosaurGame::OnOfflinePlayButtonDown(StringHash eventType, VariantMap& eventData)
-{
-	mainMenu->Toggle();
-
-	playMode = PlayMode::OFFLINE;
-
-	StartGame();
-}
-
-void DinosaurGame::OnHostGameDown(StringHash eventType, VariantMap& eventData)
-{
-	mainMenu->Toggle();
-
-	playMode = PlayMode::HOST;
-
-	StartGame();
-}
-
-void DinosaurGame::OnQuitButtonDown(StringHash eventType, VariantMap& eventData)
-{
-	GetSubsystem<Console>()->SetVisible(false);
-
-	engine_->Exit();
-}
-
-void DinosaurGame::OnJoinGameDown(StringHash eventType, VariantMap& eventData)
-{
-	mainMenu->Toggle();
-
-	playMode = PlayMode::CLIENT;
-
-	StartGame();
-}
-
-void DinosaurGame::TogglePauseMenu()
-{
-	gameMenu->Toggle();
+	bool isPaused = pauseMenu->IsShown();
 
 	cursor->SetPosition({ 1024 / 2, 768 / 2 });
 
-	cursor->SetVisible(gameMenu->IsShown());
+	cursor->SetVisible(isPaused);
 
-	scene_->SetUpdateEnabled(!cursor->IsVisible());
+	scene_->SetUpdateEnabled(!isPaused);
 
-	GetSubsystem<Input>()->SetMouseMode(gameMenu->IsShown() ? MM_ABSOLUTE : MM_RELATIVE);
+	GetSubsystem<Input>()->SetMouseMode(isPaused ? MM_ABSOLUTE : MM_RELATIVE);
 }
 
-void DinosaurGame::UpdatePauseMenuText(float delta)
+void DinosaurGame::UpdateUI(float delta)
 {
-	prevDelta = delta;
-
 	pauseMenuUpdateTimer -= delta;
 
-	if (pauseMenuUpdateTimer >= 0.0f) return;
+	if (pauseMenuUpdateTimer <= 0.0f)
+	{
+		pauseMenuUpdateTimer = 1.0f;
 
-	pauseMenuUpdateTimer = 1.0f;
+		int fps = 1.0f / delta;
 
-	int fps = 1.0f / delta;
+		scoreWindow->SetText(character_->GetScore());
 
-	gameMenu->SetText(fps, boidManager.GetNumBoids(), NUM_BOID_THREADS);
+		debugWindow->SetText(fps, boidManager.GetNumBoids(), NUM_BOID_THREADS);
+	}
 }
 
-void DinosaurGame::UpdateCamera()
+void DinosaurGame::UpdateCamera(float delta)
 {
 	bool freeCam = false;
 
@@ -313,10 +350,10 @@ void DinosaurGame::UpdateCamera()
 
 		cameraNode_->SetRotation(Quaternion(pitch_, yaw_, 0.0f));
 
-		if (input->GetKeyDown(KEY_W)) cameraNode_->Translate(Vector3::FORWARD * MOVE_SPEED * prevDelta);
-		if (input->GetKeyDown(KEY_S)) cameraNode_->Translate(Vector3::BACK * MOVE_SPEED * prevDelta);
-		if (input->GetKeyDown(KEY_A)) cameraNode_->Translate(Vector3::LEFT * MOVE_SPEED * prevDelta);
-		if (input->GetKeyDown(KEY_D)) cameraNode_->Translate(Vector3::RIGHT * MOVE_SPEED * prevDelta);
+		if (input->GetKeyDown(KEY_W)) cameraNode_->Translate(Vector3::FORWARD * MOVE_SPEED * delta);
+		if (input->GetKeyDown(KEY_S)) cameraNode_->Translate(Vector3::BACK * MOVE_SPEED * delta);
+		if (input->GetKeyDown(KEY_A)) cameraNode_->Translate(Vector3::LEFT * MOVE_SPEED * delta);
+		if (input->GetKeyDown(KEY_D)) cameraNode_->Translate(Vector3::RIGHT * MOVE_SPEED * delta);
 	}
 	else
 	{

@@ -20,6 +20,8 @@
 // THE SOFTWARE.
 //
 
+#include <Urho3D/Resource/ResourceCache.h>
+
 #include <Urho3D/Core/Context.h>
 #include <Urho3D/Graphics/AnimationController.h>
 #include <Urho3D/IO/MemoryBuffer.h>
@@ -28,6 +30,10 @@
 #include <Urho3D/Physics/RigidBody.h>
 #include <Urho3D/Scene/Scene.h>
 #include <Urho3D/Scene/SceneEvents.h>
+
+#include <iostream>
+
+#include "PlayerMissile.h"
 
 #include "Character.h"
 
@@ -58,6 +64,7 @@ void Character::Start()
 {
 	// Component has been inserted into its scene node. Subscribe to events now
 	SubscribeToEvent(GetNode(), E_NODECOLLISION, URHO3D_HANDLER(Character, HandleNodeCollision));
+	SubscribeToEvent(GetNode(), E_NODECOLLISIONSTART, URHO3D_HANDLER(Character, HandleCollisionStart));
 }
 
 void Character::FixedUpdate(float timeStep)
@@ -139,10 +146,7 @@ void Character::FixedUpdate(float timeStep)
 
 void Character::HandleNodeCollision(StringHash eventType, VariantMap& eventData)
 {
-	// Check collision contacts and see if character is standing on ground (look for a contact that has near vertical normal)
-	using namespace NodeCollision;
-
-	MemoryBuffer contacts(eventData[P_CONTACTS].GetBuffer());
+	MemoryBuffer contacts(eventData[NodeCollision::P_CONTACTS].GetBuffer());
 
 	while (!contacts.IsEof())
 	{
@@ -156,4 +160,14 @@ void Character::HandleNodeCollision(StringHash eventType, VariantMap& eventData)
 				onGround_ = true;
 		}
 	}
+}
+
+void Character::HandleCollisionStart(StringHash eventType, VariantMap& eventData)
+{
+	RigidBody* otherBody = static_cast<RigidBody*>(eventData[NodeCollision::P_OTHERBODY].GetPtr());
+	Node* otherNode = otherBody->GetNode();
+	std::string otherName = otherNode->GetName().CString();
+
+	if (otherName == "Boid")
+		score -= 1;
 }

@@ -8,23 +8,16 @@ MainMenu::MainMenu(UI* _ui, ResourceCache* _cache) : InterfaceBaseClass(_ui, _ca
 
 void MainMenu::Create()
 {
+	if (isCreated) return;
+
 	window = CreateWindow("MainWindow");
 
-	offlinePlayBtn	= CreateButton(window, "Play Offline");
-	hostOnlineBtn	= CreateButton(window, "Host Online Game");
-	joinOnlineBtn	= CreateButton(window, "Join Online Game");
-	quitBtn			= CreateButton(window, "Quit");
+	offlinePlayBtn = CreateButton(window, "Play Offline");
+	hostOnlineBtn = CreateButton(window, "Host Online Game");
+	joinOnlineBtn = CreateButton(window, "Join Online Game");
+	quitBtn = CreateButton(window, "Quit");
 
 	root->AddChild(window);
 
-	window->SetVisible(true);
-
-	isShowing = true;
-}
-
-void MainMenu::Toggle()
-{
-	isShowing = !isShowing;
-
-	window->SetVisible(isShowing);
+	isCreated = true;
 }
