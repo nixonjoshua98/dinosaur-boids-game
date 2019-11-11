@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Urho3D/Scene/LogicComponent.h>
+
 namespace Urho3D
 {
 	class ResourceCache;
@@ -11,11 +13,18 @@ namespace Urho3D
 
 using namespace Urho3D;
 
-class PlayerMissile
+class PlayerMissile : public LogicComponent
 {
 public:
-	void Init(ResourceCache* cache, Scene* scene);
-	void Fire(Node* camera);
+	PlayerMissile(Context*);
+
+	void Initialise(ResourceCache* cache, Scene* scene);
+
+	void Shoot(Vector3 spawnPos, Vector3 dir);
+
+	void Update(float delta);
+
+	Vector3 GetPosition();
 
 private:
 	Node* node;
@@ -23,5 +32,5 @@ private:
 	CollisionShape* collisionShape;
 	StaticModel* staticModel;
 
-	float speed;
+	float speed = 20.0f;
 };

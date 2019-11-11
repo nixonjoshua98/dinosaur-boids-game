@@ -11,7 +11,6 @@ namespace Urho3D
 
 class Character;
 class Touch;
-class _ObjectFactory;
 
 #include "BoidManager.h"
 
@@ -83,33 +82,38 @@ private:
 
 	bool firstPerson_;
 
-
 	// - - - - - - - - - - - - -
-	BoidManager boidManager;
+	PlayerMissile* playerMissile;
 
+	BoidManager boidManager;
 	_ObjectFactory factory;
 
 	float pauseMenuUpdateTimer = 1.0f;
 
 	// UI
-	std::unique_ptr<GameMenu> pauseMenu;
+	std::unique_ptr<PauseMenu> pauseMenu;
 	std::unique_ptr<MainMenu> mainMenu;
 	std::unique_ptr<DebugWindow> debugWindow;
 	std::unique_ptr<ScoreWindow> scoreWindow;
 	std::unique_ptr<ControlsWindow> controlsWindow;
 
 	void CreateScene();
-	void StartGame();
-	void InitialiseInterface();
 	void CreateCharacter();
+
+	void StartGame();
+
+	void InitialiseInterface();
+	void InitialiseMissiles();
+
 	void SubscribeToGameEvents();
 
 	void UpdateUI(float);
 	void UpdateCamera(float);
 
-	// UI
 	void SetupMainMenu();
 	void SetupPauseMenu();
+
+	void ToggleFullscreen();
 	void ToggleGamePause();
 
 	// Main Menu Callbacks
@@ -126,8 +130,8 @@ private:
 	void HandleUpdate(StringHash, VariantMap&);
 	void HandlePostUpdate(StringHash, VariantMap&);
 	void HandleKeyUp(StringHash, VariantMap&);
+	void HandleMouseDown(StringHash, VariantMap&);
 
-	void ToggleFullscreen();
 	void AddConsole();
 	void Quit();
 	// - - - - - - - - - - - - -

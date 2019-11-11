@@ -1,12 +1,12 @@
 
 #include "PauseMenu.h"
 
-GameMenu::GameMenu(UI* _ui, ResourceCache* _cache) : InterfaceBaseClass(_ui, _cache)
+PauseMenu::PauseMenu(UI* _ui, ResourceCache* _cache) : InterfaceBaseClass(_ui, _cache)
 {
 	
 }
 
-void GameMenu::Create()
+void PauseMenu::Create()
 {
 	if (isCreated) return;
 

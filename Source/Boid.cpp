@@ -42,12 +42,12 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	staticModel->SetModel(cache->GetResource<Model>("Models/Dinosaur.mdl"));
 	staticModel->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
 
-	node->SetScale(2.5f);
+	node->SetScale(2.f);
 
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
 
-	collisionShape->SetBox(Vector3::ONE  * 0.2f);
+	collisionShape->SetBox(Vector3::ONE  * 0.1f);
 
 	rigidBody->SetPosition({Random(-150.0f, 150.0f), 0.25f, Random(-150.0f, 150.0f) });
 

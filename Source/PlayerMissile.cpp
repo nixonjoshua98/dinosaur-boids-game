@@ -12,9 +12,20 @@
 #include <Urho3D/Graphics/StaticModel.h>
 #include <Urho3D/Graphics/Camera.h>
 
+#include <Urho3D/Physics/PhysicsEvents.h>
+
+#include <string>
+#include <iostream>
+
 #include "PlayerMissile.h"
 
-void PlayerMissile::Init(ResourceCache* cache, Scene* scene)
+
+PlayerMissile::PlayerMissile(Context* context) : LogicComponent(context)
+{
+
+}
+
+void PlayerMissile::Initialise(ResourceCache* cache, Scene* scene)
 {
 	node = scene->CreateChild("Missile");
 
@@ -22,22 +33,42 @@ void PlayerMissile::Init(ResourceCache* cache, Scene* scene)
 	rigidBody		= node->CreateComponent<RigidBody>();
 	collisionShape	= node->CreateComponent<CollisionShape>();
 
-	staticModel->SetModel(cache->GetResource<Model>("Models/Cylinder.mdl"));
+	staticModel->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
 	staticModel->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
 
-	node->SetScale(2.5f);
+	node->SetScale(1.f);
 
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
 
 	collisionShape->SetBox(Vector3::ONE);
 
-	rigidBody->SetPosition({ 0.0f, -5.0f, 0.0f });
+	rigidBody->SetPosition({ 0.0f, -100.0f, 0.0f });
 }
 
-void PlayerMissile::Fire(Node* camera)
+void PlayerMissile::Shoot(Vector3 spawnPos, Vector3 dir)
 {
 
-	rigidBody->SetPosition(camera->GetPosition());
-	rigidBody->SetLinearVelocity(camera->GetDirection().Normalized() * speed);
+	Vector3 v = spawnPos + (dir * 3);
+
+	//v.y_ = 1.f;
+
+	rigidBody->SetPosition(v);
+
+	rigidBody->SetLinearVelocity(dir.Normalized() * speed);
+
+}
+
+void PlayerMissile::Update(float delta)
+{
+	Vector3 v = rigidBody->GetLinearVelocity();
+
+	v.y_ = 0.0f;
+
+	rigidBody->SetLinearVelocity(v);
+}
+
+Vector3 PlayerMissile::GetPosition()
+{
+	return rigidBody->GetPosition();
 }

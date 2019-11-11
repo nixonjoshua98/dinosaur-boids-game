@@ -4,19 +4,11 @@
 
 #include <Urho3D/Engine/Engine.h>
 
-#include <Urho3D/Graphics/AnimatedModel.h>
-#include <Urho3D/Graphics/AnimationController.h>
 #include <Urho3D/Graphics/Camera.h>
-#include <Urho3D/Graphics/Light.h>
 #include <Urho3D/Graphics/Material.h>
-#include <Urho3D/Graphics/Octree.h>
-#include <Urho3D/Graphics/Renderer.h>
-#include <Urho3D/Graphics/Zone.h>
-#include <Urho3D/Graphics/DebugRenderer.h>
 
 #include <Urho3D/Input/Input.h>
 
-#include <Urho3D/Physics/CollisionShape.h>
 #include <Urho3D/Physics/PhysicsWorld.h>
 #include <Urho3D/Physics/RigidBody.h>
 
@@ -24,31 +16,13 @@
 
 #include <Urho3D/Scene/Scene.h>
 
-#include <Urho3D/Network/Network.h>
-#include <Urho3D/Network/NetworkEvents.h>
-
-#include <Urho3D/UI/Font.h>
-#include <Urho3D/UI/Button.h>
-#include <Urho3D/UI/UIEvents.h>
-#include <Urho3D/UI/Text.h>
-#include <Urho3D/UI/UI.h>
-#include <Urho3D/UI/Window.h>
-#include <Urho3D/UI/LineEdit.h>
-#include <Urho3D/UI/UIEvents.h>
-#include <Urho3D/UI/CheckBox.h>
-
-#include <Urho3D/IO/MemoryBuffer.h>
-#include <Urho3D/IO/VectorBuffer.h>
-
 #include <string>
 
 #include "Character.h"
 #include "Touch.h"
-
+#include "PlayerMissile.h"
 #include "_ObjectFactory.h"
 
-
-// Interface
 #include "MainMenu.h"
 #include "PauseMenu.h"
 
@@ -60,6 +34,9 @@
 #include "Constants.h"
 
 #include "DinosaurGame.h"
+
+#define PRINT_V3(v) std::cout << "(" << v.x_ << ", " << v.y_ << ", " << v.z_ << ")\n";
+
 
 URHO3D_DEFINE_APPLICATION_MAIN(DinosaurGame)
 
@@ -80,7 +57,7 @@ void DinosaurGame::Start()
 {
 	Sample::Start();
 	
-	//AddConsole();
+	AddConsole();
 
 	CreateScene();
 
@@ -96,6 +73,8 @@ void DinosaurGame::Start()
 void DinosaurGame::StartGame()
 {
 	SetupPauseMenu();
+
+	InitialiseMissiles();
 
 	debugWindow->Create();
 	scoreWindow->Create();
@@ -131,7 +110,7 @@ void DinosaurGame::InitialiseInterface()
 
 	cursor->SetPosition({ 1024 / 2, 768 / 2 });
 
-	pauseMenu		= std::make_unique<GameMenu>(ui, cache);
+	pauseMenu		= std::make_unique<PauseMenu>(ui, cache);
 	mainMenu		= std::make_unique<MainMenu>(ui, cache);
 	debugWindow		= std::make_unique<DebugWindow>(ui, cache);
 	scoreWindow		= std::make_unique<ScoreWindow>(ui, cache);
@@ -139,6 +118,13 @@ void DinosaurGame::InitialiseInterface()
 
 	controlsWindow->Create();
 	controlsWindow->Show();
+}
+
+void DinosaurGame::InitialiseMissiles()
+{
+	playerMissile = new PlayerMissile(context_);
+
+	playerMissile->Initialise(GetSubsystem<ResourceCache>(), scene_);
 }
 
 void DinosaurGame::SetupMainMenu()
@@ -223,8 +209,6 @@ void DinosaurGame::CreateScene()
 
 	GetSubsystem<Renderer>()->SetViewport(0, new Viewport(context_, scene_, camera));
 
-	scene_->CreateComponent<DebugRenderer>();
-
 	factory.CreateZone();
 	factory.CreateLight(LIGHT_DIRECTIONAL);
 	factory.CreateFloor();
@@ -244,11 +228,12 @@ void DinosaurGame::SubscribeToGameEvents()
 	SubscribeToEvent(E_KEYUP,				URHO3D_HANDLER(DinosaurGame, HandleKeyUp));
 	SubscribeToEvent(E_UPDATE,				URHO3D_HANDLER(DinosaurGame, HandleUpdate));
 	SubscribeToEvent(E_POSTUPDATE,			URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
+	SubscribeToEvent(E_MOUSEBUTTONDOWN,		URHO3D_HANDLER(DinosaurGame, HandleMouseDown));
 
 	UnsubscribeFromEvent(E_SCENEUPDATE);
 }
 
-void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
+void DinosaurGame::HandleUpdate(StringHash, VariantMap& eventData)
 {
 	if (!cursor->IsVisible())
 	{
@@ -257,6 +242,8 @@ void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 		Input* input = GetSubsystem<Input>();
 
 		boidManager.Update(eventData[Update::P_TIMESTEP].GetFloat());
+
+		playerMissile->Update(eventData[Update::P_TIMESTEP].GetFloat());
 
 		character_->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
 		character_->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
@@ -272,13 +259,15 @@ void DinosaurGame::HandleUpdate(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void DinosaurGame::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
+void DinosaurGame::HandlePostUpdate(StringHash, VariantMap& eventData)
 {
 	if (!cursor->IsVisible())
 		UpdateCamera(eventData[PostUpdate::P_TIMESTEP].GetFloat());
+
+	//PRINT_V3(playerMissile->GetPosition());
 }
 
-void DinosaurGame::HandleKeyUp(StringHash eventType, VariantMap& eventData)
+void DinosaurGame::HandleKeyUp(StringHash, VariantMap& eventData)
 {
 	int key = eventData[KeyUp::P_KEY].GetInt();
 
@@ -296,6 +285,16 @@ void DinosaurGame::HandleKeyUp(StringHash eventType, VariantMap& eventData)
 		ToggleGamePause();
 		break;
 	}
+}
+
+void DinosaurGame::HandleMouseDown(StringHash, VariantMap& eventData)
+{
+	if (cursor->IsVisible()) return;
+
+	int key = eventData[MouseButtonDown::P_BUTTON].GetInt();
+
+	if (key == MOUSEB_LEFT)
+		playerMissile->Shoot(character_->GetComponent<RigidBody>()->GetPosition(), cameraNode_->GetDirection());
 }
 
 void DinosaurGame::ToggleGamePause()
@@ -325,7 +324,7 @@ void DinosaurGame::UpdateUI(float delta)
 
 		int fps = 1.0f / delta;
 
-		scoreWindow->SetText(character_->GetScore());
+		scoreWindow->SetText(character_->score);
 
 		debugWindow->SetText(fps, boidManager.GetNumBoids(), NUM_BOID_THREADS);
 	}
