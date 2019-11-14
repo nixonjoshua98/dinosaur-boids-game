@@ -64,7 +64,7 @@ void Character::Start()
 {
 	// Component has been inserted into its scene node. Subscribe to events now
 	SubscribeToEvent(GetNode(), E_NODECOLLISION, URHO3D_HANDLER(Character, HandleNodeCollision));
-	SubscribeToEvent(GetNode(), E_NODECOLLISIONSTART, URHO3D_HANDLER(Character, HandleCollisionStart));
+	//SubscribeToEvent(GetNode(), E_NODECOLLISIONSTART, URHO3D_HANDLER(Character, HandleCollisionStart));
 }
 
 void Character::FixedUpdate(float timeStep)
@@ -144,6 +144,11 @@ void Character::FixedUpdate(float timeStep)
 	onGround_ = false;
 }
 
+Vector3 Character::GetPosition()
+{
+	return GetNode()->GetPosition();
+}
+
 void Character::HandleNodeCollision(StringHash eventType, VariantMap& eventData)
 {
 	MemoryBuffer contacts(eventData[NodeCollision::P_CONTACTS].GetBuffer());
@@ -162,12 +167,12 @@ void Character::HandleNodeCollision(StringHash eventType, VariantMap& eventData)
 	}
 }
 
-void Character::HandleCollisionStart(StringHash eventType, VariantMap& eventData)
-{
-	RigidBody* otherBody = static_cast<RigidBody*>(eventData[NodeCollision::P_OTHERBODY].GetPtr());
-	Node* otherNode = otherBody->GetNode();
-	std::string otherName = otherNode->GetName().CString();
-
-	if (otherName == "Boid")
-		score -= 1;
-}
+//void Character::HandleCollisionStart(StringHash eventType, VariantMap& eventData)
+//{
+//	RigidBody* otherBody = static_cast<RigidBody*>(eventData[NodeCollision::P_OTHERBODY].GetPtr());
+//	Node* otherNode = otherBody->GetNode();
+//	std::string otherName = otherNode->GetName().CString();
+//
+//	if (otherName == "Boid")
+//		score -= 1;
+//}

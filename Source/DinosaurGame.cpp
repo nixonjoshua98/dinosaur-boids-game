@@ -250,6 +250,7 @@ void DinosaurGame::HandleUpdate(StringHash, VariantMap& eventData)
 		playerMissile.Update(eventData[Update::P_TIMESTEP].GetFloat());
 
 		CheckMissileCollisions();
+		CheckCharacterCollisions();
 
 		character_->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
 		character_->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
@@ -397,6 +398,27 @@ void DinosaurGame::UpdateCamera(float delta)
 
 			cameraNode_->SetPosition(aimPoint + rayDir * rayDistance); 
 			cameraNode_->SetRotation(dir);
+		}
+	}
+}
+
+void DinosaurGame::CheckCharacterCollisions()
+{
+	Vector3 playerPos = character_->GetPosition();
+
+	std::vector<Boid*> boids = boidManager.GetBoidsInCell(playerPos);
+
+	const int COLLIDER_DIST = 1.0f;
+
+	for (int i = 0; i < boids.size(); i++)
+	{
+		if ((boids[i]->GetPosition() - playerPos).Length() < COLLIDER_DIST && boids[i]->IsEnabled())
+		{
+			boids[i]->Destroy();
+
+			character_->score--;
+
+			break;
 		}
 	}
 }

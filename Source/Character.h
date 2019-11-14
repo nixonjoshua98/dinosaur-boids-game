@@ -60,12 +60,14 @@ public:
 	/// Movement controls. Assigned by the main program each frame.
 	Controls controls_;
 
+	Vector3 GetPosition();
+
 	int score = 0;
 
 private:
 	/// Handle physics collision event.
 	void HandleNodeCollision(StringHash eventType, VariantMap& eventData);
-	void HandleCollisionStart(StringHash eventType, VariantMap& eventData);
+	//void HandleCollisionStart(StringHash eventType, VariantMap& eventData);
 
 	/// Grounded flag for movement.
 	bool onGround_;

@@ -67,7 +67,9 @@ void BoidManager::Update(float delta)
 
 std::vector<Boid*> BoidManager::GetBoidsInCell(Vector3 pos)
 {
-	return boidNeighbourMap[GetCellKey(pos)];
+	auto key = GetCellKey(pos);
+
+	return boidNeighbourMap[key];
 }
 
 void BoidManager::SpawnBoid(int amount)
@@ -193,5 +195,5 @@ inline std::pair<int, int> BoidManager::GetCellKey(Vector3 v)
 	int x_index = (x_tile - (x_tile % CELL_SIZE)) / CELL_SIZE;
 	int z_index = (z_tile - (z_tile % CELL_SIZE)) / CELL_SIZE;
 
-	return { x_index, z_index };
+	return { 0, 0 };
 }

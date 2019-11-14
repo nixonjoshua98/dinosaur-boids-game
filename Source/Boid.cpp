@@ -18,16 +18,16 @@
 
 #define PRINT_V3(v) std::cout << "(" << v.x_ << ", " << v.y_ << ", " << v.z_ << ")\n";
 
-float Boid::Range_FAttract = 50.0f;
+float Boid::Range_FAttract	= 30.0f;
+float Boid::Range_FRepel	= 30.0f;
+float Boid::Range_FAlign		= 30.0f;
 
-float Boid::Range_FAlign = 50.0f;
-float Boid::FAlign_Factor = 2.0f;
+float Boid::FAlign_Factor = 4.0f;
 
-float Boid::FAttract_Vmax = 25.0f;
-float Boid::FAttract_Factor = 10.0f;
+float Boid::FAttract_Vmax = 6.0f;
+float Boid::FAttract_Factor = 15.0f;
 
-float Boid::FRepel_Factor = 50.0f;
-float Boid::Range_FRepel = 75.0f;
+float Boid::FRepel_Factor = 5.0f;
 
 void Boid::Initialise(ResourceCache* cache, Scene* scene)
 {
@@ -38,25 +38,20 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 {
 	node = scene->CreateChild("Boid");
 
-	staticModel = node->CreateComponent<StaticModel>();
-	rigidBody = node->CreateComponent<RigidBody>();
-	collisionShape = node->CreateComponent<CollisionShape>();
+	staticModel	= node->CreateComponent<StaticModel>();
+	rigidBody		= node->CreateComponent<RigidBody>();
 
-	staticModel->SetModel(cache->GetResource<Model>("Models/Dinosaur.mdl"));
+	staticModel->SetModel(cache->GetResource<Model>("Models/Cone.mdl"));
 	staticModel->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
 
-	node->SetScale(0.5f);
+	node->SetScale(1.0f);
 
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
-	rigidBody->SetCollisionLayer(19);
 
-	//collisionShape->SetBox(Vector3::ONE  * 0.1f);
-
-	rigidBody->SetPosition({Random(-150.0f, 150.0f), 0.25f, Random(-150.0f, 150.0f) });
-
-	//rigidBody->SetLinearVelocity({ Random(-20.0f, 20.0f), 0.0f, Random(-20.0f, 20.0f) });
-}
+	rigidBody->SetPosition({Random(-10.0f, 10.0f), 0.5f, Random(-10.0f, 10.0f) });
+	rigidBody->SetLinearVelocity({ Random(-10.0f, 10.0f), 0.0f, Random(-10.0f, 10.0f) });
+}							   
 
 void Boid::Update(float tm)
 {
@@ -73,16 +68,11 @@ void Boid::Update(float tm)
 	rigidBody->SetLinearVelocity(vel.Normalized() * d);
 
 	// Rotation	   
-	Vector3 vn = vel.Normalized();
-	Vector3 cp = -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
-	float dp	 = cp.DotProduct(vn);
-	Quaternion	 rot = Quaternion(Acos(dp), cp);
+	Vector3 vn			= vel.Normalized();
+	Vector3 cp			= -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
+	float dp				= cp.DotProduct(vn);
 
-	Vector3 currentPos = GetPosition();
-
-	currentPos.y_ = 0.25f;
-
-	rigidBody->SetPosition(currentPos);
+	rigidBody->SetRotation(Quaternion(Acos(dp), cp));
 }
 
 void Boid::ComputeForce(std::vector<Boid*> boids)
@@ -90,53 +80,57 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 	if (!node->IsEnabled()) return;
 
 	Vector3 CoM;				// Centre of mass, accumulated total
-	int n = 0;					// Count number of neigbours	
+
+	int attractNeighbours		= 0;
+	int allignNeighbours		= 0;
 
 	Vector3 avgVelocity;
 	Vector3 sepV;
 
 	force = Vector3(0, 0, 0);		// Set the force member variable to zero
 
-	Vector3 pos = GetPosition();
-
-	DebugRenderer* r = node->GetScene()->GetComponent<DebugRenderer>();
-
 	for (unsigned int i = 0; i < boids.size(); i++)
 	{
 		Vector3 otherBoidPosition = boids[i]->GetPosition();
 		Vector3 otherBoidVelocity = boids[i]->GetLinearVelocity();
 
-		if (pos == otherBoidPosition)
+		// Ignore itself
+		if (GetPosition() == otherBoidPosition)
 			continue;
 		
-		Vector3 sep = pos - otherBoidPosition;
+		Vector3 sep = GetPosition() - otherBoidPosition;
 
 		if (sep.Length() < Range_FAttract)
 		{
 			CoM += otherBoidPosition;
-			n++;
+			attractNeighbours++;
 		}
 		
 		if (sep.Length() < Range_FRepel)
+		{
 			sepV += sep.Normalized();
-
+			
+		}
 
 		if (sep.Length() < Range_FAlign)
+		{
 			avgVelocity += otherBoidVelocity;
+			allignNeighbours++;
+		}
 	}
 
-	CoM /= n;
-	avgVelocity /= n;
+	if (attractNeighbours > 0)
+	{
+		Vector3 desiredDirection		= ( (CoM  / attractNeighbours ) - GetPosition()).Normalized();
+		Vector3 desiredVelocity		= desiredDirection * FAttract_Vmax;
 
-	Vector3 dir = (CoM - GetPosition()).Normalized();
-	Vector3 vDesired = dir * FAttract_Vmax;
+		// Forces
+		Vector3 attractive		= (desiredVelocity - GetLinearVelocity()) * FAttract_Factor;
+		Vector3 allignment		= ( (avgVelocity / allignNeighbours) - GetLinearVelocity()) * FAlign_Factor;
+		Vector3 repel				= sepV * FRepel_Factor;
 
-	// Forces
-	Vector3 attractive = (vDesired - GetLinearVelocity()) * FAttract_Factor;
-	Vector3 allignment = (avgVelocity - GetLinearVelocity()) * FAlign_Factor;
-	Vector3 repel = sepV * FRepel_Factor;
-
-	force += (attractive + allignment + repel);
+		force = (attractive + allignment + repel);
+	}
 }
 
 bool Boid::IsEnabled()
