@@ -36,7 +36,11 @@ public:
 
 	void Update(float);
 
-	void ComputeForce(std::vector<Boid*>);
+	void ComputeForce(std::vector<Boid*> boids);
+
+	bool IsEnabled();
+
+	void Destroy();
 
 	Vector3 GetPosition();
 	Vector3 GetLinearVelocity();

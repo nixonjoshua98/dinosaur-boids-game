@@ -13,16 +13,20 @@ namespace Urho3D
 
 using namespace Urho3D;
 
-class PlayerMissile : public LogicComponent
+class PlayerMissile
 {
 public:
-	PlayerMissile(Context*);
+	float lifetime = 0.0f;
 
 	void Initialise(ResourceCache* cache, Scene* scene);
 
 	void Shoot(Vector3 spawnPos, Vector3 dir);
 
 	void Update(float delta);
+
+	bool IsEnabled();
+
+	void Disable();
 
 	Vector3 GetPosition();
 
@@ -32,5 +36,5 @@ private:
 	CollisionShape* collisionShape;
 	StaticModel* staticModel;
 
-	float speed = 20.0f;
+	float speed = 100.0f;
 };

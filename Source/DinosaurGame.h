@@ -13,6 +13,7 @@ class Character;
 class Touch;
 
 #include "BoidManager.h"
+#include "PlayerMissile.h"
 
 #include <memory>
 #include <iostream>
@@ -83,12 +84,13 @@ private:
 	bool firstPerson_;
 
 	// - - - - - - - - - - - - -
-	PlayerMissile* playerMissile;
-
+	PlayerMissile playerMissile;
 	BoidManager boidManager;
 	_ObjectFactory factory;
 
-	float pauseMenuUpdateTimer = 1.0f;
+	bool usingFreeCamera = false;
+
+	float menuUpdateTimer = 1.0f;
 
 	// UI
 	std::unique_ptr<PauseMenu> pauseMenu;
@@ -109,6 +111,9 @@ private:
 
 	void UpdateUI(float);
 	void UpdateCamera(float);
+
+	void CheckCharacterCollisions();	// TODO
+	void CheckMissileCollisions();
 
 	void SetupMainMenu();
 	void SetupPauseMenu();

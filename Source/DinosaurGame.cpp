@@ -6,6 +6,7 @@
 
 #include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Graphics/Material.h>
+#include <Urho3D/Graphics/DebugRenderer.h>
 
 #include <Urho3D/Input/Input.h>
 
@@ -32,6 +33,7 @@
 
 #include "RealTimer.h"
 #include "Constants.h"
+#include "Boid.h"
 
 #include "DinosaurGame.h"
 
@@ -86,6 +88,7 @@ void DinosaurGame::StartGame()
 	SubscribeToGameEvents();
 
 	mainMenu->Hide();
+
 	debugWindow->Hide();
 
 	scoreWindow->Show();
@@ -111,8 +114,8 @@ void DinosaurGame::InitialiseInterface()
 	cursor->SetPosition({ 1024 / 2, 768 / 2 });
 
 	pauseMenu		= std::make_unique<PauseMenu>(ui, cache);
-	mainMenu		= std::make_unique<MainMenu>(ui, cache);
-	debugWindow		= std::make_unique<DebugWindow>(ui, cache);
+	mainMenu			= std::make_unique<MainMenu>(ui, cache);
+	debugWindow	= std::make_unique<DebugWindow>(ui, cache);
 	scoreWindow		= std::make_unique<ScoreWindow>(ui, cache);
 	controlsWindow	= std::make_unique<ControlsWindow>(ui, cache);
 
@@ -122,9 +125,8 @@ void DinosaurGame::InitialiseInterface()
 
 void DinosaurGame::InitialiseMissiles()
 {
-	playerMissile = new PlayerMissile(context_);
 
-	playerMissile->Initialise(GetSubsystem<ResourceCache>(), scene_);
+	playerMissile.Initialise(GetSubsystem<ResourceCache>(), scene_);
 }
 
 void DinosaurGame::SetupMainMenu()
@@ -212,6 +214,8 @@ void DinosaurGame::CreateScene()
 	factory.CreateZone();
 	factory.CreateLight(LIGHT_DIRECTIONAL);
 	factory.CreateFloor();
+
+	scene_->CreateComponent<DebugRenderer>();
 }
 
 void DinosaurGame::CreateCharacter()
@@ -243,7 +247,9 @@ void DinosaurGame::HandleUpdate(StringHash, VariantMap& eventData)
 
 		boidManager.Update(eventData[Update::P_TIMESTEP].GetFloat());
 
-		playerMissile->Update(eventData[Update::P_TIMESTEP].GetFloat());
+		playerMissile.Update(eventData[Update::P_TIMESTEP].GetFloat());
+
+		CheckMissileCollisions();
 
 		character_->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
 		character_->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
@@ -263,8 +269,6 @@ void DinosaurGame::HandlePostUpdate(StringHash, VariantMap& eventData)
 {
 	if (!cursor->IsVisible())
 		UpdateCamera(eventData[PostUpdate::P_TIMESTEP].GetFloat());
-
-	//PRINT_V3(playerMissile->GetPosition());
 }
 
 void DinosaurGame::HandleKeyUp(StringHash, VariantMap& eventData)
@@ -275,6 +279,10 @@ void DinosaurGame::HandleKeyUp(StringHash, VariantMap& eventData)
 	{
 	case KEY_F1:
 		firstPerson_ = !firstPerson_;
+		break;
+
+	case KEY_F3:
+		usingFreeCamera = !usingFreeCamera;
 		break;
 
 	case KEY_F11:
@@ -293,8 +301,8 @@ void DinosaurGame::HandleMouseDown(StringHash, VariantMap& eventData)
 
 	int key = eventData[MouseButtonDown::P_BUTTON].GetInt();
 
-	if (key == MOUSEB_LEFT)
-		playerMissile->Shoot(character_->GetComponent<RigidBody>()->GetPosition(), cameraNode_->GetDirection());
+	if (key == MOUSEB_LEFT && !playerMissile.IsEnabled())
+		playerMissile.Shoot(character_->GetComponent<RigidBody>()->GetPosition(), cameraNode_->GetDirection());
 }
 
 void DinosaurGame::ToggleGamePause()
@@ -316,25 +324,23 @@ void DinosaurGame::ToggleGamePause()
 
 void DinosaurGame::UpdateUI(float delta)
 {
-	pauseMenuUpdateTimer -= delta;
+	menuUpdateTimer -= delta;
 
-	if (pauseMenuUpdateTimer <= 0.0f)
+	if (menuUpdateTimer <= 0.0f)
 	{
-		pauseMenuUpdateTimer = 1.0f;
+		menuUpdateTimer = 1.0f;
 
 		int fps = 1.0f / delta;
 
 		scoreWindow->SetText(character_->score);
 
-		debugWindow->SetText(fps, boidManager.GetNumBoids(), NUM_BOID_THREADS);
+		debugWindow->SetText(fps, boidManager.GetNumEnabledBoids(), NUM_BOID_THREADS);
 	}
 }
 
 void DinosaurGame::UpdateCamera(float delta)
 {
-	bool freeCam = false;
-
-	if (freeCam)
+	if (usingFreeCamera)
 	{
 		Input* input = GetSubsystem<Input>();
 
@@ -391,6 +397,31 @@ void DinosaurGame::UpdateCamera(float delta)
 
 			cameraNode_->SetPosition(aimPoint + rayDir * rayDistance); 
 			cameraNode_->SetRotation(dir);
+		}
+	}
+}
+
+void DinosaurGame::CheckMissileCollisions()
+{
+	if (!playerMissile.IsEnabled()) return;		   
+
+	Vector3 missilePos = playerMissile.GetPosition();
+
+	std::vector<Boid*> boids = boidManager.GetBoidsInCell(missilePos);
+
+	const int COLLIDER_DIST = 2.5f;
+
+	for (int i = 0; i < boids.size(); i++)
+	{
+		if ((boids[i]->GetPosition() - missilePos).Length() < COLLIDER_DIST && boids[i]->IsEnabled())
+		{
+			boids[i]->Destroy();
+
+			character_->score++;
+
+			playerMissile.Disable();
+
+			break;
 		}
 	}
 }

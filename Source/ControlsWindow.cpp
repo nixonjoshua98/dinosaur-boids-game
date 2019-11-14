@@ -11,8 +11,9 @@ void ControlsWindow::Create()
 
 	const String controls =
 		"WASD    - Move\n"
-		"F1      - Toggle camera\n"
+		"F1      - Toggle First Person\n"
 		"F2      - Debug HUD\n"
+		"F3      - Toggle Free Camera\n"
 		"F11     - Fullscreen\n"
 		"Esc     - Pause";
 

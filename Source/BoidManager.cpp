@@ -65,6 +65,11 @@ void BoidManager::Update(float delta)
 	currentFrame++;
 }
 
+std::vector<Boid*> BoidManager::GetBoidsInCell(Vector3 pos)
+{
+	return boidNeighbourMap[GetCellKey(pos)];
+}
+
 void BoidManager::SpawnBoid(int amount)
 {
 	for (int i = 0; i < amount; i++)
@@ -95,18 +100,16 @@ void BoidManager::UpdateThread(int threadID)
 
 			for (int i = indexes.first; i < indexes.second; i++)
 			{
-				auto key = GetCellKey(boids[i]->GetPosition());
-
 				lock.lock();
 
-				bool hasNeighbours = boidNeighbourMap[key].size() == 0;
+				std::vector<Boid*> neighbours = GetBoidsInCell(boids[i]->GetPosition());
 
 				lock.unlock();
 
-				if (hasNeighbours)
+				if (neighbours.size() == 0)
 					continue;
 
-				boids[i]->ComputeForce(boidNeighbourMap[key]);
+				boids[i]->ComputeForce(neighbours);
 
 				boids[i]->Update(deltaTime);
 			}
@@ -128,12 +131,17 @@ void BoidManager::UpdateNeighbourMap()
 		it++;
 	}
 
+	destroyedBoids = 0;
+
 	// Update
 	for (int i = 0; i < numBoids; i++)
 	{
 		std::pair<int, int> key = GetCellKey(boids[i]->GetPosition());
 
 		boidNeighbourMap[key].push_back(boids[i]);
+
+		if (!boids[i]->IsEnabled())
+			destroyedBoids++;
 	}
 
 	lock.unlock();

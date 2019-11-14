@@ -36,7 +36,12 @@ public:
 
 	void Update(float);
 
-	unsigned int GetNumBoids() { return numBoids; }
+	unsigned int GetNumBoids() { return numBoids; }	  
+	unsigned int GetNumEnabledBoids() { return numBoids - destroyedBoids; }
+
+	Boid** GetBoids() { return boids; }
+
+	std::vector<Boid*> GetBoidsInCell(Vector3 pos);
 
 private:
 	Boid** boids;
@@ -57,6 +62,7 @@ private:
 
 	unsigned int currentFrame	= -1;
 	unsigned int numBoids		= 0;
+	unsigned int destroyedBoids = 0;
 
 	void SpawnBoid(int);
 	void UpdateThread(int);

@@ -19,39 +19,37 @@
 
 #include "PlayerMissile.h"
 
-
-PlayerMissile::PlayerMissile(Context* context) : LogicComponent(context)
-{
-
-}
-
 void PlayerMissile::Initialise(ResourceCache* cache, Scene* scene)
 {
 	node = scene->CreateChild("Missile");
 
 	staticModel		= node->CreateComponent<StaticModel>();
-	rigidBody		= node->CreateComponent<RigidBody>();
+	rigidBody			= node->CreateComponent<RigidBody>();
 	collisionShape	= node->CreateComponent<CollisionShape>();
 
 	staticModel->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
 	staticModel->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
 
-	node->SetScale(1.f);
+	node->SetScale(0.5f);
 
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
 
-	collisionShape->SetBox(Vector3::ONE);
+	rigidBody->SetPosition({ 0.0f, 0.0f, 0.0f });
 
-	rigidBody->SetPosition({ 0.0f, -100.0f, 0.0f });
+	node->SetEnabled(false);
+
 }
 
 void PlayerMissile::Shoot(Vector3 spawnPos, Vector3 dir)
 {
-
 	Vector3 v = spawnPos + (dir * 3);
 
-	//v.y_ = 1.f;
+	node->SetEnabled(true);
+
+	lifetime = 1.0f;
+
+	v.y_ = 1.f;
 
 	rigidBody->SetPosition(v);
 
@@ -61,11 +59,31 @@ void PlayerMissile::Shoot(Vector3 spawnPos, Vector3 dir)
 
 void PlayerMissile::Update(float delta)
 {
-	Vector3 v = rigidBody->GetLinearVelocity();
+	lifetime -= delta;
 
-	v.y_ = 0.0f;
+	if (lifetime <= 0.0f)
+	{
+		node->SetEnabled(false);
+	}
+	else
+	{
+		Vector3 v = rigidBody->GetLinearVelocity();
 
-	rigidBody->SetLinearVelocity(v);
+		v.y_ = 0.0f;
+
+		rigidBody->SetLinearVelocity(v);
+	}
+}
+
+bool PlayerMissile::IsEnabled()
+{
+	return node->IsEnabled();
+}
+
+void PlayerMissile::Disable()
+{
+	lifetime = 0.0f;
+	node->SetEnabled(false);
 }
 
 Vector3 PlayerMissile::GetPosition()
