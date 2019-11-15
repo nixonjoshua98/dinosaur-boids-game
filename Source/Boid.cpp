@@ -16,18 +16,7 @@
 #include "Boid.h"
 #include "Constants.h"
 
-#define PRINT_V3(v) std::cout << "(" << v.x_ << ", " << v.y_ << ", " << v.z_ << ")\n";
 
-float Boid::Range_FAttract	= 30.0f;
-float Boid::Range_FRepel	= 30.0f;
-float Boid::Range_FAlign		= 30.0f;
-
-float Boid::FAlign_Factor = 4.0f;
-
-float Boid::FAttract_Vmax = 6.0f;
-float Boid::FAttract_Factor = 15.0f;
-
-float Boid::FRepel_Factor = 5.0f;
 
 void Boid::Initialise(ResourceCache* cache, Scene* scene)
 {
@@ -39,7 +28,7 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	node = scene->CreateChild("Boid");
 
 	staticModel	= node->CreateComponent<StaticModel>();
-	rigidBody		= node->CreateComponent<RigidBody>();
+	rigidBody	= node->CreateComponent<RigidBody>();
 
 	staticModel->SetModel(cache->GetResource<Model>("Models/Cone.mdl"));
 	staticModel->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
@@ -49,13 +38,14 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
 
-	rigidBody->SetPosition({Random(-10.0f, 10.0f), 0.5f, Random(-10.0f, 10.0f) });
-	rigidBody->SetLinearVelocity({ Random(-10.0f, 10.0f), 0.0f, Random(-10.0f, 10.0f) });
+	rigidBody->SetPosition({Random(-100.0f, 100.0f), 0.5f, Random(-100.0f, 100.0f) });
 }							   
 
 void Boid::Update(float tm)
 {
 	if (!node->IsEnabled()) return;
+
+	force.y_ = 0.0f;
 
 	rigidBody->ApplyForce(force);
 
@@ -68,12 +58,22 @@ void Boid::Update(float tm)
 	rigidBody->SetLinearVelocity(vel.Normalized() * d);
 
 	// Rotation	   
-	Vector3 vn			= vel.Normalized();
-	Vector3 cp			= -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
-	float dp				= cp.DotProduct(vn);
+	Vector3 vn	= vel.Normalized();
+	Vector3 cp	= -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
+	float dp	= cp.DotProduct(vn);
 
 	rigidBody->SetRotation(Quaternion(Acos(dp), cp));
 }
+
+float Boid::ATTRACT_RANGE		= 20.0f;
+float Boid::ATTRACT_STRENGTH	= 8.0f;
+float Boid::ATTRACT_MAX_V		= 5.0f;
+
+float Boid::REPEL_RANGE		= 14.0;
+float Boid::REPEL_STRENGTH	= 17.0f;
+
+float Boid::ALLIGN_RANGE	= 8.0f;
+float Boid::ALIGN_STRENGTH	= 3.0f;
 
 void Boid::ComputeForce(std::vector<Boid*> boids)
 {
@@ -81,11 +81,12 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 
 	Vector3 CoM;				// Centre of mass, accumulated total
 
-	int attractNeighbours		= 0;
-	int allignNeighbours		= 0;
+	int attractNeighbours	= 0;
+	int allignNeighbours	= 0;
+	int repelNeighbours		= 0;
 
-	Vector3 avgVelocity;
-	Vector3 sepV;
+	Vector3 totalVelocity;
+	Vector3 totalVectorLength;
 
 	force = Vector3(0, 0, 0);		// Set the force member variable to zero
 
@@ -95,41 +96,63 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 		Vector3 otherBoidVelocity = boids[i]->GetLinearVelocity();
 
 		// Ignore itself
-		if (GetPosition() == otherBoidPosition)
+		if (GetPosition() == otherBoidPosition || !boids[i]->IsEnabled())
 			continue;
 		
 		Vector3 sep = GetPosition() - otherBoidPosition;
 
-		if (sep.Length() < Range_FAttract)
+		if (sep.Length() < ATTRACT_RANGE)
 		{
 			CoM += otherBoidPosition;
 			attractNeighbours++;
 		}
 		
-		if (sep.Length() < Range_FRepel)
+		if (sep.Length() < REPEL_RANGE)
 		{
-			sepV += sep.Normalized();
-			
+			totalVectorLength += sep.Normalized();	
+			repelNeighbours++;
 		}
 
-		if (sep.Length() < Range_FAlign)
+		if (sep.Length() < ALLIGN_RANGE)
 		{
-			avgVelocity += otherBoidVelocity;
+			totalVelocity += otherBoidVelocity;
 			allignNeighbours++;
 		}
 	}
 
+	// Attraction
 	if (attractNeighbours > 0)
 	{
-		Vector3 desiredDirection		= ( (CoM  / attractNeighbours ) - GetPosition()).Normalized();
-		Vector3 desiredVelocity		= desiredDirection * FAttract_Vmax;
+		Vector3 desiredDirection = ((CoM / attractNeighbours) - GetPosition()).Normalized();
+		Vector3 desiredVelocity = desiredDirection * ATTRACT_MAX_V;
 
-		// Forces
-		Vector3 attractive		= (desiredVelocity - GetLinearVelocity()) * FAttract_Factor;
-		Vector3 allignment		= ( (avgVelocity / allignNeighbours) - GetLinearVelocity()) * FAlign_Factor;
-		Vector3 repel				= sepV * FRepel_Factor;
+		Vector3 attractionForce = (desiredVelocity - GetLinearVelocity()) * ATTRACT_STRENGTH;
 
-		force = (attractive + allignment + repel);
+		force += attractionForce;
+	}
+
+	// Center Attraction
+	Vector3 desiredDirection = (Vector3::ZERO - GetPosition()).Normalized();
+	Vector3 desiredVelocity = desiredDirection * 6.0f;
+
+	Vector3 centerAttractForce = (desiredVelocity - GetLinearVelocity());
+
+	force += centerAttractForce;
+
+	// Repel
+	if (repelNeighbours > 0)
+	{
+		Vector3 repelForce = totalVectorLength * REPEL_STRENGTH;
+
+		force += repelForce;
+	}
+
+	// Allignment
+	if (allignNeighbours > 0)
+	{
+		Vector3 allignment = ((totalVelocity / allignNeighbours) - GetLinearVelocity()).Normalized() * ALIGN_STRENGTH;
+
+		force += allignment;
 	}
 }
 

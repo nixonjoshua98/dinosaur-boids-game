@@ -29,8 +29,6 @@ BoidManager::~BoidManager()
 
 void BoidManager::Initialise(ResourceCache* _cache, Scene* _scene)
 {
-	auto timer = RealTimer("BoidManager::Initialise: ");
-
 	scene = _scene;
 	cache = _cache;
 
@@ -151,43 +149,14 @@ void BoidManager::UpdateNeighbourMap()
 
 std::pair<int, int> BoidManager::GetUpdateIndexes(int threadID)
 {
+
 	int chunk_size = numBoids / NUM_BOID_THREADS;
 
-	int start = 0, end = 0;
+	return { chunk_size * threadID, chunk_size * (threadID + 1) };
 
-	switch (alternateUpdate)
-	{
-
-	case BoidsUpdateEnum::FIRST_HALF:
-		alternateUpdate = BoidsUpdateEnum::SECOND_HALF;
-
-		start	= threadID * (chunk_size / 2);
-		end		= start + (chunk_size / 2);
-
-		break;
-
-	case BoidsUpdateEnum::SECOND_HALF:
-		alternateUpdate = BoidsUpdateEnum::FIRST_HALF;
-
-		start	= threadID * (chunk_size / 2) + numBoids / 2;
-		end		= start + (chunk_size / 2);
-
-		if (threadID + 1 == NUM_BOID_THREADS)
-			end = numBoids;
-
-		break;
-
-	case BoidsUpdateEnum::ALL:
-		start	= threadID * chunk_size;
-		end		= start + chunk_size;
-
-		break;
-	}
-	
-	return { start, end };
 }
 
-inline std::pair<int, int> BoidManager::GetCellKey(Vector3 v)
+std::pair<int, int> BoidManager::GetCellKey(Vector3 v)
 {
 	int x_tile = v.x_ + (FLOOR_SIZE / 2);
 	int z_tile = v.z_ + (FLOOR_SIZE / 2);

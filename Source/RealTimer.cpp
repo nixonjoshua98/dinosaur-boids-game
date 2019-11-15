@@ -13,7 +13,7 @@ RealTimer::RealTimer(std::string _txt)
 
 RealTimer::~RealTimer()
 {
-	std::cout << txt << Tick() << "s\n";
+	std::cout << txt << Tick() << "ms\n";
 }
 
 // Returns time since start in milliseconds

@@ -17,13 +17,6 @@ using namespace Urho3D;
 
 class Boid;
 
-enum class BoidsUpdateEnum
-{
-	ALL,
-	FIRST_HALF,
-	SECOND_HALF
-};
-
 class BoidManager
 {
 public:
@@ -46,11 +39,8 @@ public:
 private:
 	Boid** boids;
 
-	BoidsUpdateEnum alternateUpdate = BoidsUpdateEnum::FIRST_HALF;
-
 	std::map< std::pair<int, int>, std::vector<Boid*> > boidNeighbourMap;
 
-	std::thread thread;
 	std::vector<std::thread> threads;
 	std::mutex lock;
 
