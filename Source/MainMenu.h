@@ -13,4 +13,6 @@ public:
 	Button* hostOnlineBtn;
 	Button* joinOnlineBtn;
 	Button* quitBtn;
+
+	LineEdit* ipAddress;
 };

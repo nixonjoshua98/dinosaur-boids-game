@@ -11,8 +11,15 @@ void PauseMenu::Create()
 	if (isCreated) return;
 
 	window		= CreateWindow("PauseWindow");
-	continueBtn = CreateButton(window, "Continue");
-	quitBtn		= CreateButton(window, "Quit");
+	continueBtn	= CreateButton(window, "Continue");
+
+	ipAddress = CreateLineEdit(window, "localhost");
+
+	connectBtn		= CreateButton(window, "Connect");
+	disconnectBtn	= CreateButton(window, "Disconnect");
+	startSvrBtn		= CreateButton(window, "Start Server");
+
+	quitBtn	= CreateButton(window, "Quit");
 
 	root->AddChild(window);
 

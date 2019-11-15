@@ -14,6 +14,7 @@ void MainMenu::Create()
 
 	offlinePlayBtn = CreateButton(window, "Play Offline");
 	hostOnlineBtn = CreateButton(window, "Host Online Game");
+	ipAddress = CreateLineEdit(window, "localhost");
 	joinOnlineBtn = CreateButton(window, "Join Online Game");
 	quitBtn = CreateButton(window, "Quit");
 

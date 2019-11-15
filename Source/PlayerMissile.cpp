@@ -12,8 +12,6 @@
 #include <Urho3D/Graphics/StaticModel.h>
 #include <Urho3D/Graphics/Camera.h>
 
-#include <Urho3D/Physics/PhysicsEvents.h>
-
 #include <string>
 #include <iostream>
 
@@ -21,11 +19,12 @@
 
 void PlayerMissile::Initialise(ResourceCache* cache, Scene* scene)
 {
+
 	node = scene->CreateChild("Missile");
 
-	staticModel		= node->CreateComponent<StaticModel>();
+	staticModel			= node->CreateComponent<StaticModel>();
 	rigidBody			= node->CreateComponent<RigidBody>();
-	collisionShape	= node->CreateComponent<CollisionShape>();
+	collisionShape		= node->CreateComponent<CollisionShape>();
 
 	staticModel->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
 	staticModel->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
@@ -34,7 +33,6 @@ void PlayerMissile::Initialise(ResourceCache* cache, Scene* scene)
 
 	rigidBody->SetMass(1.0f);
 	rigidBody->SetUseGravity(false);
-
 	rigidBody->SetPosition({ 0.0f, 0.0f, 0.0f });
 
 	node->SetEnabled(false);

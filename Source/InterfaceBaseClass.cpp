@@ -93,6 +93,19 @@ Text* InterfaceBaseClass::CreateText(UIElement* parent, String label)
 
 }
 
+LineEdit* InterfaceBaseClass::CreateLineEdit(UIElement* parent, String txt)
+{
+	LineEdit* lineEdit = parent->CreateChild<LineEdit>();
+
+	lineEdit->SetMinHeight(24);
+	lineEdit->SetAlignment(HA_CENTER, VA_CENTER);
+	lineEdit->SetText(txt);
+	window->AddChild(lineEdit);
+	lineEdit->SetStyleAuto();
+
+	return lineEdit;
+}
+
 Window* InterfaceBaseClass::CreateWindow(String name, LayoutMode layout, IntVector2 pos, int width)
 {
 	Context* context = root->GetContext();

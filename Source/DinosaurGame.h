@@ -13,10 +13,16 @@ class Character;
 class Touch;
 
 #include "BoidManager.h"
-#include "PlayerMissile.h"
 
 #include <memory>
 #include <iostream>
+
+enum class NetworkRole
+{
+	CLIENT,
+	SERVER,
+	OFFLINE
+};
 
 
 class DinosaurGame : public Sample
@@ -76,21 +82,25 @@ protected:
     }
 
 private:
-
+	// Default
 	SharedPtr<Touch> touch_;
-	WeakPtr<Character> character_;
-	SharedPtr<Cursor> cursor;
-
 	bool firstPerson_;
 
 	// - - - - - - - - - - - - -
-	PlayerMissile playerMissile;
+	SharedPtr<Cursor> cursor;
+
+	NetworkRole networkRole;
 	BoidManager boidManager;
-	_ObjectFactory factory;
 
-	bool usingFreeCamera = false;
+	Character* character;
+	Controls clientControls;
 
-	float menuUpdateTimer = 1.0f;
+	unsigned int nodeID = 0;
+
+	const unsigned int SERVER_PORT = 2345;
+
+	bool usingFreeCamera	= false;
+	float menuUpdateTimer	= 1.0f;
 
 	// UI
 	std::unique_ptr<PauseMenu> pauseMenu;
@@ -99,27 +109,56 @@ private:
 	std::unique_ptr<ScoreWindow> scoreWindow;
 	std::unique_ptr<ControlsWindow> controlsWindow;
 
-	void CreateScene();
-	void CreateCharacter();
+	HashMap<Connection*, WeakPtr<Node> > charactersTable;
 
+	// Game Entry Point
 	void StartGame();
 
+	// Init
 	void InitialiseInterface();
-	void InitialiseMissiles();
 
+	// Subscriptions
 	void SubscribeToGameEvents();
+	void SubscribeToServerEvents();
+	void SubscribeToClientEvents();
 
-	void UpdateUI(float);
-	void UpdateCamera(float);
-
-	void CheckCharacterCollisions();	// TODO
+	// Collision Checks
+	void CheckCharacterCollisions();	
 	void CheckMissileCollisions();
 
+	// Network
+	void ConnectToServer(String);
+	void StartServer();
+
+	// Menus
 	void SetupMainMenu();
 	void SetupPauseMenu();
 
+	// Misc. States
 	void ToggleFullscreen();
 	void ToggleGamePause();
+
+	// Scenes
+	void CreateOfflineScene();
+	void CreateClientScene();
+	void CreateServerScene();
+
+	// Scene Objects
+	Character* CreateCharacter();
+	void CreateZone(CreateMode);
+	void CreateScene(CreateMode);
+	void CreateCamera();
+	void CreateMushroom();
+	void CreateLighting();
+	void CreateFloor();
+
+	// Updates
+	void UpdateUI(float);
+	void UpdateFreeCamera(float);
+	void UpdateShoulderCamera(float);
+
+	void UpdateServerCharacterControls();
+	void UpdateClientCharacterControls();
 
 	// Main Menu Callbacks
 	void MM_OfflinePlayBtnDown(StringHash, VariantMap&);
@@ -131,12 +170,22 @@ private:
 	void PM_ContinueBtnDown(StringHash, VariantMap&);
 	void PM_QuitBtnDown(StringHash, VariantMap&);
 
-	// Event Callbacks
+	// Game Event Callbacks
 	void HandleUpdate(StringHash, VariantMap&);
 	void HandlePostUpdate(StringHash, VariantMap&);
 	void HandleKeyUp(StringHash, VariantMap&);
+	void HandlePhysicsPreStep(StringHash eventType, VariantMap& eventData);
 	void HandleMouseDown(StringHash, VariantMap&);
 
+	// Network Methods
+	void ProcessClientControls();
+
+	// Network Callbacks
+	void HandleClientConnected(StringHash eventType, VariantMap& eventData);
+	void HandleClientDisconnected(StringHash eventType, VariantMap& eventData);
+	void HandleCharacterAllocation(StringHash eventType, VariantMap& eventData);
+
+	// Misc.
 	void AddConsole();
 	void Quit();
 	// - - - - - - - - - - - - -

@@ -42,6 +42,7 @@ protected:
 
 	Button* CreateButton(UIElement*, String);
 	Text* CreateText(UIElement*, String);
+	LineEdit* CreateLineEdit(UIElement*, String);
 
 private:
 	Window* CreateWindow(String name, LayoutMode layout, IntVector2 pos, int width);
