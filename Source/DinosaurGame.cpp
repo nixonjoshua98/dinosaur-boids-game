@@ -104,10 +104,7 @@ void DinosaurGame::StartGame()
 
 	// SERVER AND OFFLINE ONLY
 	if (networkRole == NetworkRole::OFFLINE || networkRole == NetworkRole::SERVER)
-	{
 		boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
-	}
-
 }
 
 void DinosaurGame::InitialiseInterface()
@@ -371,6 +368,8 @@ void DinosaurGame::SubscribeToGameEvents()
 	SubscribeToEvent(E_POSTUPDATE,			URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
 	SubscribeToEvent(E_MOUSEBUTTONDOWN,		URHO3D_HANDLER(DinosaurGame, HandleMouseDown));
 
+	SubscribeToEvent(E_POSTRENDERUPDATE, URHO3D_HANDLER(DinosaurGame, HandlePostRenderUpdate));
+
 	UnsubscribeFromEvent(E_SCENEUPDATE);
 }
 
@@ -394,6 +393,8 @@ void DinosaurGame::SubscribeToClientEvents()
 void DinosaurGame::HandleUpdate(StringHash, VariantMap& eventData)
 {
 	float deltaTime = eventData[Update::P_TIMESTEP].GetFloat();
+
+	scene_->GetComponent<PhysicsWorld>()->DrawDebugGeometry(scene_->GetComponent<DebugRenderer>(), false);
 
 	UpdateUI(deltaTime);
 
@@ -472,6 +473,13 @@ void DinosaurGame::HandlePhysicsPreStep(StringHash eventType, VariantMap& eventD
 void DinosaurGame::HandleMouseDown(StringHash, VariantMap& eventData)
 {
 	int key = eventData[MouseButtonDown::P_BUTTON].GetInt();
+}
+
+void DinosaurGame::HandlePostRenderUpdate(StringHash, VariantMap&)
+{
+
+	DebugRenderer* debug = scene_->GetComponent<DebugRenderer>();  
+
 }
 
 void DinosaurGame::ProcessClientControls()
@@ -675,6 +683,7 @@ void DinosaurGame::CreateScene(CreateMode scope)
 
 	scene_->CreateComponent<Octree>(scope);
 	scene_->CreateComponent<PhysicsWorld>(scope);
+	scene_->CreateComponent<DebugRenderer>();
 }
 
 void DinosaurGame::CreateMushroom()

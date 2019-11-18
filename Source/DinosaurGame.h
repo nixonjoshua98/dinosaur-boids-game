@@ -176,6 +176,7 @@ private:
 	void HandleKeyUp(StringHash, VariantMap&);
 	void HandlePhysicsPreStep(StringHash eventType, VariantMap& eventData);
 	void HandleMouseDown(StringHash, VariantMap&);
+	void HandlePostRenderUpdate(StringHash, VariantMap&);
 
 	// Network Methods
 	void ProcessClientControls();

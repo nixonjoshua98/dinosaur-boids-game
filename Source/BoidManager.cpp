@@ -33,11 +33,11 @@ void BoidManager::Initialise(ResourceCache* _cache, Scene* _scene)
 	cache = _cache;
 
 	// Create the base neighbour lookup table
-	for (float i = FLOOR_SIZE / 2; i < FLOOR_SIZE * 2; i += CELL_SIZE)
+	for (float x = -FLOOR_SIZE / 2; x <= FLOOR_SIZE / 2; x += CELL_SIZE)
 	{
-		for (float j = FLOOR_SIZE / 2; j < FLOOR_SIZE * 2; j += CELL_SIZE)
+		for (float z = -FLOOR_SIZE / 2; z <= FLOOR_SIZE / 2; z += CELL_SIZE)
 		{
-			boidNeighbourMap.emplace(GetCellKey({ i, 0.0f, j }), std::vector<Boid*>());
+			boidNeighbourMap.emplace(GetCellKey({ x, 0.0f, z }), std::vector<Boid*>());			
 		}
 	}
 
@@ -164,5 +164,5 @@ std::pair<int, int> BoidManager::GetCellKey(Vector3 v)
 	int x_index = (x_tile - (x_tile % CELL_SIZE)) / CELL_SIZE;
 	int z_index = (z_tile - (z_tile % CELL_SIZE)) / CELL_SIZE;
 
-	return { 0, 0 };
+	return { x_index, z_index };
 }
