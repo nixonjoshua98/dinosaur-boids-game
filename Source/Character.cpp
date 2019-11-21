@@ -166,13 +166,3 @@ void Character::HandleNodeCollision(StringHash eventType, VariantMap& eventData)
 		}
 	}
 }
-
-//void Character::HandleCollisionStart(StringHash eventType, VariantMap& eventData)
-//{
-//	RigidBody* otherBody = static_cast<RigidBody*>(eventData[NodeCollision::P_OTHERBODY].GetPtr());
-//	Node* otherNode = otherBody->GetNode();
-//	std::string otherName = otherNode->GetName().CString();
-//
-//	if (otherName == "Boid")
-//		score -= 1;
-//}

@@ -95,7 +95,7 @@ private:
 	Character* character;
 	Controls clientControls;
 
-	unsigned int nodeID = 0;
+	unsigned int nodeID = 999999999;
 
 	const unsigned int SERVER_PORT = 2345;
 
@@ -125,7 +125,7 @@ private:
 	void SubscribeToClientEvents();
 
 	// Collision Checks
-	void CheckCharacterCollisions();	
+	void CheckCharacterCollisions(Character* chara);
 	void CheckMissileCollisions();
 
 	// Network

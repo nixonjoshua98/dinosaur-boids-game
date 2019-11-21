@@ -78,7 +78,7 @@ void DinosaurGame::Start()
 
 	SetupMainMenu();
 
-	AddConsole();
+	//AddConsole();
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
 
@@ -124,8 +124,8 @@ void DinosaurGame::InitialiseInterface()
 	cursor->SetPosition({ 1024 / 2, 768 / 2 });
 
 	pauseMenu		= std::make_unique<PauseMenu>(ui, cache);
-	mainMenu		= std::make_unique<MainMenu>(ui, cache);
-	debugWindow		= std::make_unique<DebugWindow>(ui, cache);
+	mainMenu			= std::make_unique<MainMenu>(ui, cache);
+	debugWindow	= std::make_unique<DebugWindow>(ui, cache);
 	scoreWindow		= std::make_unique<ScoreWindow>(ui, cache);
 	controlsWindow	= std::make_unique<ControlsWindow>(ui, cache);
 
@@ -242,6 +242,8 @@ void DinosaurGame::CreateServerScene()
 	CreateMushroom();
 
 	character = CreateCharacter();
+
+	nodeID = character->GetNode()->GetID();
 }
 
 void DinosaurGame::UpdateFreeCamera(float deltaTime)
@@ -274,29 +276,27 @@ void DinosaurGame::UpdateFreeCamera(float deltaTime)
 
 void DinosaurGame::UpdateShoulderCamera(float deltaTime)
 {
-	Node* characterNode;
 	Controls controls;
 
+	Node*  characterNode = character->GetNode();
+
+	// Client
 	if (networkRole == NetworkRole::CLIENT)
 	{
-		characterNode = scene_->GetNode(nodeID);
-		controls	 = clientControls;
-
-		return;
+		controls	= clientControls;
 	}
 
 	// Server / Offline
 	else
 	{
-		controls		= character->controls_;
-		characterNode	= character->GetNode();
+		controls	 = character->controls_;
 	}
 
 	Quaternion rot = characterNode->GetRotation();
 	Quaternion dir = rot * Quaternion(controls.pitch_, Vector3::RIGHT);
 
 	Node* headNode		= characterNode->GetChild("Mutant:Head", true);
-	float limitPitch	= Clamp(controls.pitch_, -45.0f, 45.0f);
+	float limitPitch			= Clamp(controls.pitch_, -45.0f, 45.0f);
 	Quaternion headDir	= rot * Quaternion(limitPitch, Vector3(1.0f, 0.0f, 0.0f));
 
 	Vector3 headWorldTarget = headNode->GetWorldPosition() + headDir * Vector3(0.0f, 0.0f, -1.0f);
@@ -304,6 +304,7 @@ void DinosaurGame::UpdateShoulderCamera(float deltaTime)
 	headNode->LookAt(headWorldTarget, Vector3(0.0f, 1.0f, 0.0f));
 
 	headNode->Rotate(Quaternion(0.0f, 90.0f, 90.0f));
+
 
 	if (firstPerson_)
 	{
@@ -397,13 +398,21 @@ void DinosaurGame::HandleUpdate(StringHash, VariantMap& eventData)
 {
 	float deltaTime = eventData[Update::P_TIMESTEP].GetFloat();
 
-	// scene_->GetComponent<PhysicsWorld>()->DrawDebugGeometry(scene_->GetComponent<DebugRenderer>(), false);
-
 	UpdateUI(deltaTime);
 
 	if (networkRole == NetworkRole::OFFLINE || networkRole == NetworkRole::SERVER)
 	{
-		CheckCharacterCollisions();
+		CheckCharacterCollisions(character);
+
+		// Check collisions on clients
+		if (networkRole == NetworkRole::SERVER)
+		{
+			for (Connection* con : charactersTable.Keys())
+			{
+				CheckCharacterCollisions(charactersTable[con]->GetComponent<Character>());
+			}
+
+		}
 
 		boidManager.Update(deltaTime);		
 
@@ -421,11 +430,14 @@ void DinosaurGame::HandlePostUpdate(StringHash, VariantMap& eventData)
 {
 	float deltaTime = eventData[PostUpdate::P_TIMESTEP].GetFloat();
 
-	if (usingFreeCamera)
-		UpdateFreeCamera(deltaTime);
+	if (nodeID != 999999999)
+	{
+		if (usingFreeCamera)
+			UpdateFreeCamera(deltaTime);
 
-	else if (!usingFreeCamera)
-		UpdateShoulderCamera(deltaTime);
+		else if (!usingFreeCamera)
+			UpdateShoulderCamera(deltaTime);
+	}
 }
 
 void DinosaurGame::HandleKeyUp(StringHash, VariantMap& eventData)
@@ -507,7 +519,7 @@ void DinosaurGame::ProcessClientControls()
 
 		charactersTable[connection]->SetRotation(Quaternion(controls.yaw_, Vector3::UP));
 	}
-}
+}																	  
 
 void DinosaurGame::HandleClientConnected(StringHash eventType, VariantMap& eventData)
 {
@@ -520,12 +532,6 @@ void DinosaurGame::HandleClientConnected(StringHash eventType, VariantMap& event
 	charactersTable[clientCon] = c->GetNode();
 
 	clientCon->SetScene(scene_);
-
-	VariantMap remoteData;
-
-	remoteData["nodeID"] = charactersTable[clientCon]->GetID();
-
-	clientCon->SendRemoteEvent(E_CLIENTOBJECTAUTHORITY, true, remoteData);
 }
 
 void DinosaurGame::HandleClientDisconnected(StringHash eventType, VariantMap& eventData)
@@ -542,9 +548,11 @@ void DinosaurGame::HandleClientDisconnected(StringHash eventType, VariantMap& ev
 void DinosaurGame::HandleCharacterAllocation(StringHash eventType, VariantMap& eventData)
 {
 
-	unsigned int nodeID = eventData["nodeID"].GetUInt();
+	nodeID = eventData["nodeID"].GetUInt();
+
+	Node* n = scene_->GetNode(nodeID);
 	
-	//character = scene_->GetNode(nodeID)->GetComponent<Character>();
+	character = n->GetComponent<Character>();
 
 }
 
@@ -622,26 +630,23 @@ void DinosaurGame::UpdateUI(float delta)
 	}
 }
 
-void DinosaurGame::CheckCharacterCollisions()
+void DinosaurGame::CheckCharacterCollisions(Character* chara)
 {
-	if (networkRole == NetworkRole::SERVER || networkRole == NetworkRole::OFFLINE)
+	Vector3 playerPos = chara->GetPosition();
+
+	std::vector<Boid*> boids = boidManager.GetBoidsInCell(playerPos);
+
+	const int COLLIDER_DIST = 1.0f;
+
+	for (int i = 0; i < boids.size(); i++)
 	{
-		Vector3 playerPos = character->GetPosition();
-
-		std::vector<Boid*> boids = boidManager.GetBoidsInCell(playerPos);
-
-		const int COLLIDER_DIST = 1.0f;
-
-		for (int i = 0; i < boids.size(); i++)
+		if ((boids[i]->GetPosition() - playerPos).Length() < COLLIDER_DIST && boids[i]->IsEnabled())
 		{
-			if ((boids[i]->GetPosition() - playerPos).Length() < COLLIDER_DIST && boids[i]->IsEnabled())
-			{
-				boids[i]->Destroy();
+			boids[i]->Destroy();
 
-				character->score--;
+			chara->score--;
 
-				break;
-			}
+			break;
 		}
 	}
 }
