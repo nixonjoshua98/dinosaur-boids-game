@@ -51,12 +51,12 @@
 
 /* 
 	Removed alternating updates
-	Removed cell based neighbour checks - add back after networking it - include enighbour cells
 */
 
 URHO3D_DEFINE_APPLICATION_MAIN(DinosaurGame)
 
 static const StringHash E_CLIENTOBJECTAUTHORITY("ClientObjectAuthority");
+static const StringHash E_UPDATEINTERFACE("UpdateInterface");
 
 DinosaurGame::DinosaurGame(Context* context) :
     Sample(context),
@@ -102,7 +102,6 @@ void DinosaurGame::StartGame()
 
 	scoreWindow->Show();
 
-	// SERVER AND OFFLINE ONLY
 	if (networkRole == NetworkRole::OFFLINE || networkRole == NetworkRole::SERVER)
 		boidManager.Initialise(GetSubsystem<ResourceCache>(), scene_);
 }
@@ -221,6 +220,7 @@ void DinosaurGame::CreateOfflineScene()
 	CreateZone(LOCAL);
 	CreateLighting();
 	CreateFloor();
+
 	character = CreateCharacter();
 }
 
@@ -240,6 +240,7 @@ void DinosaurGame::CreateServerScene()
 	CreateLighting();
 	CreateFloor();
 	CreateMushroom();
+
 	character = CreateCharacter();
 }
 
@@ -278,8 +279,8 @@ void DinosaurGame::UpdateShoulderCamera(float deltaTime)
 
 	if (networkRole == NetworkRole::CLIENT)
 	{
-		characterNode	= scene_->GetNode(nodeID);
-		controls		= clientControls;
+		characterNode = scene_->GetNode(nodeID);
+		controls	 = clientControls;
 
 		return;
 	}
@@ -377,8 +378,8 @@ void DinosaurGame::SubscribeToServerEvents()
 {
 
 	SubscribeToEvent(E_CLIENTCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleClientConnected));
-	SubscribeToEvent(E_CLIENTDISCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleClientDisconnected));	SubscribeToEvent(E_PHYSICSPRESTEP, URHO3D_HANDLER(DinosaurGame, HandlePhysicsPreStep));
-	GetSubsystem<Network>()->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);
+	SubscribeToEvent(E_CLIENTDISCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleClientDisconnected));	SubscribeToEvent(E_PHYSICSPRESTEP, URHO3D_HANDLER(DinosaurGame, HandlePhysicsPreStep));	SubscribeToEvent(E_CLIENTSCENELOADED, URHO3D_HANDLER(DinosaurGame, HandleClientSceneLoaded));
+	GetSubsystem<Network>()->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);	GetSubsystem<Network>()->RegisterRemoteEvent(E_UPDATEINTERFACE);
 }
 
 void DinosaurGame::SubscribeToClientEvents()
@@ -387,22 +388,27 @@ void DinosaurGame::SubscribeToClientEvents()
 
 	SubscribeToEvent(E_CLIENTOBJECTAUTHORITY, URHO3D_HANDLER(DinosaurGame, HandleCharacterAllocation));
 
-	GetSubsystem<Network>()->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);
+	SubscribeToEvent(E_UPDATEINTERFACE, URHO3D_HANDLER(DinosaurGame, HandleInterfaceUpdate));
+
+	GetSubsystem<Network>()->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);	GetSubsystem<Network>()->RegisterRemoteEvent(E_UPDATEINTERFACE);
 }
 
 void DinosaurGame::HandleUpdate(StringHash, VariantMap& eventData)
 {
 	float deltaTime = eventData[Update::P_TIMESTEP].GetFloat();
 
-	scene_->GetComponent<PhysicsWorld>()->DrawDebugGeometry(scene_->GetComponent<DebugRenderer>(), false);
+	// scene_->GetComponent<PhysicsWorld>()->DrawDebugGeometry(scene_->GetComponent<DebugRenderer>(), false);
 
 	UpdateUI(deltaTime);
 
 	if (networkRole == NetworkRole::OFFLINE || networkRole == NetworkRole::SERVER)
 	{
-		boidManager.Update(deltaTime);
+		CheckCharacterCollisions();
+
+		boidManager.Update(deltaTime);		
 
 		UpdateServerCharacterControls();
+
 	}
 
 	else if (networkRole == NetworkRole::CLIENT)
@@ -509,11 +515,17 @@ void DinosaurGame::HandleClientConnected(StringHash eventType, VariantMap& event
 
 	Connection* clientCon = static_cast<Connection*>(eventData[ClientConnected::P_CONNECTION].GetPtr());
 
-	Character* c = CreateCharacter();
+	Character* c = CreateCharacter();	 
 
 	charactersTable[clientCon] = c->GetNode();
 
 	clientCon->SetScene(scene_);
+
+	VariantMap remoteData;
+
+	remoteData["nodeID"] = charactersTable[clientCon]->GetID();
+
+	clientCon->SendRemoteEvent(E_CLIENTOBJECTAUTHORITY, true, remoteData);
 }
 
 void DinosaurGame::HandleClientDisconnected(StringHash eventType, VariantMap& eventData)
@@ -529,9 +541,29 @@ void DinosaurGame::HandleClientDisconnected(StringHash eventType, VariantMap& ev
 
 void DinosaurGame::HandleCharacterAllocation(StringHash eventType, VariantMap& eventData)
 {
-	unsigned int nodeID = eventData["nodeID"].GetUInt();
 
-	character = scene_->GetNode(nodeID)->GetComponent<Character>();
+	unsigned int nodeID = eventData["nodeID"].GetUInt();
+	
+	//character = scene_->GetNode(nodeID)->GetComponent<Character>();
+
+}
+
+void DinosaurGame::HandleInterfaceUpdate(StringHash eventType, VariantMap& eventData)
+{
+	scoreWindow->SetText(eventData["score"].GetInt());
+
+	debugWindow->SetText(fps, eventData["boidNum"].GetUInt(), 0);
+}
+
+void DinosaurGame::HandleClientSceneLoaded(StringHash eventType, VariantMap& eventData)
+{
+	Connection* clientCon = static_cast<Connection*>(eventData[ClientSceneLoaded::P_CONNECTION].GetPtr());
+
+	VariantMap remoteData;
+
+	remoteData["nodeID"] = charactersTable[clientCon]->GetID();
+
+	clientCon->SendRemoteEvent(E_CLIENTOBJECTAUTHORITY, true, remoteData);
 }
 
 void DinosaurGame::ToggleGamePause()
@@ -555,33 +587,63 @@ void DinosaurGame::UpdateUI(float delta)
 	{
 		menuUpdateTimer = 1.0f;
 
-		int fps = 1.0f / delta;
+		fps = 1.0f / delta;
 
-		//scoreWindow->SetText(character->score);
+		if (networkRole == NetworkRole::OFFLINE || networkRole == NetworkRole::SERVER)
+		{
+			scoreWindow->SetText(character->score);
+			
+			debugWindow->SetText(fps, boidManager.GetNumEnabledBoids(), NUM_BOID_THREADS);
 
-		//debugWindow->SetText(fps, boidManager.GetNumEnabledBoids(), NUM_BOID_THREADS);
+			// Send to clients
+			if (networkRole == NetworkRole::SERVER)
+			{
+				VariantMap remoteData;
+
+				remoteData["boidNum"] = boidManager.GetNumEnabledBoids();
+				remoteData["numThreads"] = NUM_BOID_THREADS;
+
+				Network* network = GetSubsystem<Network>();
+
+				const Vector< SharedPtr<Connection> >& connections = network->GetClientConnections();
+
+				// Go through every client connected
+				for (unsigned i = 0; i < connections.Size(); ++i)
+				{
+					Connection* connection = connections[i];
+
+					remoteData["score"] = charactersTable[connection]->GetComponent<Character>()->score;
+
+					connection->SendRemoteEvent(E_UPDATEINTERFACE, true, remoteData);
+				}
+			}
+
+		}
 	}
 }
 
 void DinosaurGame::CheckCharacterCollisions()
 {
-	//Vector3 playerPos = character->GetPosition();
+	if (networkRole == NetworkRole::SERVER || networkRole == NetworkRole::OFFLINE)
+	{
+		Vector3 playerPos = character->GetPosition();
 
-	//std::vector<Boid*> boids = boidManager.GetBoidsInCell(playerPos);
+		std::vector<Boid*> boids = boidManager.GetBoidsInCell(playerPos);
 
-	//const int COLLIDER_DIST = 1.0f;
+		const int COLLIDER_DIST = 1.0f;
 
-	//for (int i = 0; i < boids.size(); i++)
-	//{
-	//	if ((boids[i]->GetPosition() - playerPos).Length() < COLLIDER_DIST && boids[i]->IsEnabled())
-	//	{
-	//		boids[i]->Destroy();
+		for (int i = 0; i < boids.size(); i++)
+		{
+			if ((boids[i]->GetPosition() - playerPos).Length() < COLLIDER_DIST && boids[i]->IsEnabled())
+			{
+				boids[i]->Destroy();
 
-	//		character->score--;
+				character->score--;
 
-	//		break;
-	//	}
-	//}
+				break;
+			}
+		}
+	}
 }
 
 void DinosaurGame::CheckMissileCollisions()
@@ -692,9 +754,9 @@ void DinosaurGame::CreateMushroom()
 
 	Node* node = scene_->CreateChild("Mushroom", REPLICATED);
 
-	StaticModel* object		= node->CreateComponent<StaticModel>(REPLICATED);
-	RigidBody* body			= node->CreateComponent<RigidBody>(REPLICATED);
-	CollisionShape* shape	= node->CreateComponent<CollisionShape>(REPLICATED);
+	StaticModel* object	 = node->CreateComponent<StaticModel>(REPLICATED);
+	RigidBody* body			 = node->CreateComponent<RigidBody>(REPLICATED);
+	CollisionShape* shape = node->CreateComponent<CollisionShape>(REPLICATED);
 
 	node->SetPosition({ 5.0f, 0.0f, 5.0f });
 	node->SetRotation({ 0, 0, 0 });

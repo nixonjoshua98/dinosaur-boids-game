@@ -102,6 +102,8 @@ private:
 	bool usingFreeCamera	= false;
 	float menuUpdateTimer	= 1.0f;
 
+	int fps = 0;
+
 	// UI
 	std::unique_ptr<PauseMenu> pauseMenu;
 	std::unique_ptr<MainMenu> mainMenu;
@@ -174,7 +176,7 @@ private:
 	void HandleUpdate(StringHash, VariantMap&);
 	void HandlePostUpdate(StringHash, VariantMap&);
 	void HandleKeyUp(StringHash, VariantMap&);
-	void HandlePhysicsPreStep(StringHash eventType, VariantMap& eventData);
+	void HandlePhysicsPreStep(StringHash, VariantMap&);
 	void HandleMouseDown(StringHash, VariantMap&);
 	void HandlePostRenderUpdate(StringHash, VariantMap&);
 
@@ -184,7 +186,11 @@ private:
 	// Network Callbacks
 	void HandleClientConnected(StringHash eventType, VariantMap& eventData);
 	void HandleClientDisconnected(StringHash eventType, VariantMap& eventData);
+
+	// Client Only Callbacks
 	void HandleCharacterAllocation(StringHash eventType, VariantMap& eventData);
+	void HandleInterfaceUpdate (StringHash eventType, VariantMap& eventData);
+	void HandleClientSceneLoaded(StringHash eventType, VariantMap& eventData);
 
 	// Misc.
 	void AddConsole();
