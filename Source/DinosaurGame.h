@@ -35,62 +35,37 @@ public:
 
     virtual void Start();
 
-protected:
-    virtual String GetScreenJoystickPatchString() const { return
-        "<patch>"
-        "    <add sel=\"/element\">"
-        "        <element type=\"Button\">"
-        "            <attribute name=\"Name\" value=\"Button3\" />"
-        "            <attribute name=\"Position\" value=\"-120 -120\" />"
-        "            <attribute name=\"Size\" value=\"96 96\" />"
-        "            <attribute name=\"Horiz Alignment\" value=\"Right\" />"
-        "            <attribute name=\"Vert Alignment\" value=\"Bottom\" />"
-        "            <attribute name=\"Texture\" value=\"Texture2D;Textures/TouchInput.png\" />"
-        "            <attribute name=\"Image Rect\" value=\"96 0 192 96\" />"
-        "            <attribute name=\"Hover Image Offset\" value=\"0 0\" />"
-        "            <attribute name=\"Pressed Image Offset\" value=\"0 0\" />"
-        "            <element type=\"Text\">"
-        "                <attribute name=\"Name\" value=\"Label\" />"
-        "                <attribute name=\"Horiz Alignment\" value=\"Center\" />"
-        "                <attribute name=\"Vert Alignment\" value=\"Center\" />"
-        "                <attribute name=\"Color\" value=\"0 0 0 1\" />"
-        "                <attribute name=\"Text\" value=\"Gyroscope\" />"
-        "            </element>"
-        "            <element type=\"Text\">"
-        "                <attribute name=\"Name\" value=\"KeyBinding\" />"
-        "                <attribute name=\"Text\" value=\"G\" />"
-        "            </element>"
-        "        </element>"
-        "    </add>"
-        "    <remove sel=\"/element/element[./attribute[@name='Name' and @value='Button0']]/attribute[@name='Is Visible']\" />"
-        "    <replace sel=\"/element/element[./attribute[@name='Name' and @value='Button0']]/element[./attribute[@name='Name' and @value='Label']]/attribute[@name='Text']/@value\">1st/3rd</replace>"
-        "    <add sel=\"/element/element[./attribute[@name='Name' and @value='Button0']]\">"
-        "        <element type=\"Text\">"
-        "            <attribute name=\"Name\" value=\"KeyBinding\" />"
-        "            <attribute name=\"Text\" value=\"F\" />"
-        "        </element>"
-        "    </add>"
-        "    <remove sel=\"/element/element[./attribute[@name='Name' and @value='Button1']]/attribute[@name='Is Visible']\" />"
-        "    <replace sel=\"/element/element[./attribute[@name='Name' and @value='Button1']]/element[./attribute[@name='Name' and @value='Label']]/attribute[@name='Text']/@value\">Jump</replace>"
-        "    <add sel=\"/element/element[./attribute[@name='Name' and @value='Button1']]\">"
-        "        <element type=\"Text\">"
-        "            <attribute name=\"Name\" value=\"KeyBinding\" />"
-        "            <attribute name=\"Text\" value=\"SPACE\" />"
-        "        </element>"
-        "    </add>"
-        "</patch>";
-    }
-
 private:
 	// Default
 	SharedPtr<Touch> touch_;
 	bool firstPerson_;
 
 	// - - - - - - - - - - - - -
+	int clientScore, clientBoidCount;
+
+	bool hasCharacter = false;
+
+	std::unique_ptr<BoidManager> boids;
+
+	void UpdateCharacterControls();
+
+	bool UpdateUI(float, int, int, int);
+	void UpdateClientsUI();
+
+	void PM_DisconnectBtnDown(StringHash, VariantMap&);
+	void PM_StartSvrBtnDown(StringHash, VariantMap&);
+	void PM_JoinSvrBtnDown(StringHash, VariantMap&);
+
+	void HandleServerDisconnect(StringHash, VariantMap&);
+
+	void UnsubscribeToGameEvents();
+
+	// -------------------------
+
+
 	SharedPtr<Cursor> cursor;
 
 	NetworkRole networkRole;
-	BoidManager boidManager;
 
 	Character* character;
 	Controls clientControls;

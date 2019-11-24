@@ -3,7 +3,7 @@
 
 PauseMenu::PauseMenu(UI* _ui, ResourceCache* _cache) : InterfaceBaseClass(_ui, _cache)
 {
-	
+	Create();
 }
 
 void PauseMenu::Create()
@@ -17,7 +17,7 @@ void PauseMenu::Create()
 
 	connectBtn		= CreateButton(window, "Connect");
 	disconnectBtn	= CreateButton(window, "Disconnect");
-	startSvrBtn		= CreateButton(window, "Start Server");
+	//startSvrBtn		= CreateButton(window, "Start Server");
 
 	quitBtn	= CreateButton(window, "Quit");
 

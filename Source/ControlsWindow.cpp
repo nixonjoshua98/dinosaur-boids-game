@@ -2,7 +2,7 @@
 
 ControlsWindow::ControlsWindow(UI* _ui, ResourceCache* _cache) : InterfaceBaseClass(_ui, _cache)
 {
-
+	Create();
 }
 
 void ControlsWindow::Create()

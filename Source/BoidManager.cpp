@@ -8,29 +8,41 @@
 
 BoidManager::BoidManager()
 {
-	boids = new Boid * [MAX_NUM_BOIDS];
+
 }
 
 BoidManager::~BoidManager()
 {
 	Stop();
 
-	for (std::thread& t : threads)
+	if (isUpdatingBoids)
 	{
-		if (t.joinable())
-			t.join();
+		for (std::thread& t : threads)
+		{
+			if (t.joinable())
+				t.join();
+		}
+
+		for (int i = 0; i < numBoids; i++)
+			delete boids[i];
+
+		delete[] boids;
 	}
+}
 
-	for (int i = 0; i < numBoids; i++)
-		delete boids[i];
-
-	delete[] boids;
+void BoidManager::Initialise()
+{
+	isUpdatingBoids = false;
 }
 
 void BoidManager::Initialise(ResourceCache* _cache, Scene* _scene)
 {
+	isUpdatingBoids = true;
+
 	scene = _scene;
 	cache = _cache;
+
+	boids = new Boid * [MAX_NUM_BOIDS];
 
 	// Create the base neighbour lookup table
 	for (float x = -FLOOR_SIZE / 2; x <= FLOOR_SIZE / 2; x += CELL_SIZE)
@@ -54,13 +66,16 @@ void BoidManager::Stop()
 
 void BoidManager::Update(float delta)
 {
-	deltaTime = delta;
+	if (isUpdatingBoids)
+	{
+		deltaTime = delta;
 
-	SpawnBoid(Max(1, delta * 250));
+		SpawnBoid(Max(1, delta * 250));
 
-	UpdateNeighbourMap();
+		UpdateNeighbourMap();
 
-	currentFrame++;
+		currentFrame++;
+	}
 }
 
 std::vector<Boid*> BoidManager::GetBoidsInCell(Vector3 pos)
@@ -89,7 +104,7 @@ void BoidManager::UpdateThread(int threadID)
 {
 	unsigned int frame = currentFrame;
 
-	while (isRunning)
+	while (isUpdatingBoids && isRunning)
 	{
 		// Syncs the update to a single frame
 		if (frame != currentFrame)
@@ -149,11 +164,9 @@ void BoidManager::UpdateNeighbourMap()
 
 std::pair<int, int> BoidManager::GetUpdateIndexes(int threadID)
 {
-
 	int chunk_size = numBoids / NUM_BOID_THREADS;
 
 	return { chunk_size * threadID, chunk_size * (threadID + 1) };
-
 }
 
 std::pair<int, int> BoidManager::GetCellKey(Vector3 v)

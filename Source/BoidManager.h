@@ -22,6 +22,8 @@ class BoidManager
 public:
 	BoidManager();
 	~BoidManager();
+
+	void Initialise();
 	
 	void Initialise(ResourceCache*, Scene* scene);
 
@@ -38,6 +40,8 @@ public:
 
 private:
 	Boid** boids;
+
+	bool isUpdatingBoids;
 
 	std::map< std::pair<int, int>, std::vector<Boid*> > boidNeighbourMap;
 
