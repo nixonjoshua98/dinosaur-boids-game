@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include "Sample.h"
-
 namespace Urho3D
 {
 	class Node;
@@ -10,20 +8,12 @@ namespace Urho3D
 }
 
 class Character;
-class Touch;
 
+#include "Sample.h"
 #include "BoidManager.h"
 
 #include <memory>
 #include <iostream>
-
-enum class NetworkRole
-{
-	CLIENT,
-	SERVER,
-	OFFLINE
-};
-
 
 class DinosaurGame : public Sample
 {
@@ -36,48 +26,26 @@ public:
     virtual void Start();
 
 private:
-	// Default
-	SharedPtr<Touch> touch_;
+	enum class NetworkRole { CLIENT, SERVER, OFFLINE };
+
 	bool firstPerson_;
 
 	// - - - - - - - - - - - - -
-	int clientScore, clientBoidCount;
-
-	bool hasCharacter = false;
-
 	std::unique_ptr<BoidManager> boids;
 
-	void UpdateCharacterControls();
-
-	bool UpdateUI(float, int, int, int);
-	void UpdateClientsUI();
-
-	void PM_DisconnectBtnDown(StringHash, VariantMap&);
-	void PM_StartSvrBtnDown(StringHash, VariantMap&);
-	void PM_JoinSvrBtnDown(StringHash, VariantMap&);
-
-	void HandleServerDisconnect(StringHash, VariantMap&);
-
-	void UnsubscribeToGameEvents();
-
-	// -------------------------
-
-
-	SharedPtr<Cursor> cursor;
-
 	NetworkRole networkRole;
-
 	Character* character;
 	Controls clientControls;
 
-	unsigned int nodeID = 999999999;
+	int clientScore;
+	int clientBoidCount;
 
-	const unsigned int SERVER_PORT = 2345;
+	unsigned int nodeID				= 999999999;
+	const unsigned int SERVER_PORT	= 2345;
+	float menuUpdateTimer			= 1.0f;
 
 	bool usingFreeCamera	= false;
-	float menuUpdateTimer	= 1.0f;
-
-	int fps = 0;
+	bool hasCharacter		= false;
 
 	// UI
 	std::unique_ptr<PauseMenu> pauseMenu;
@@ -99,9 +67,10 @@ private:
 	void SubscribeToServerEvents();
 	void SubscribeToClientEvents();
 
+	void UnsubscribeToGameEvents();
+
 	// Collision Checks
 	void CheckCharacterCollisions(Character* chara);
-	void CheckMissileCollisions();
 
 	// Network
 	void ConnectToServer(String);
@@ -130,11 +99,12 @@ private:
 	void CreateFloor();
 
 	// Updates
-	void UpdateUI(float);
+	bool UpdateUI(float, int, int, int);
+	void UpdateClientsUI();
 	void UpdateFreeCamera(float);
 	void UpdateShoulderCamera(float);
 
-	void UpdateServerCharacterControls();
+	void UpdateCharacterControls();
 	void UpdateClientCharacterControls();
 
 	// Main Menu Callbacks
@@ -144,6 +114,9 @@ private:
 	void MM_QuitGameBtnDown(StringHash, VariantMap&);
 
 	// Pause Menu Callbacks
+	void PM_DisconnectBtnDown(StringHash, VariantMap&);
+	void PM_StartSvrBtnDown(StringHash, VariantMap&);
+	void PM_JoinSvrBtnDown(StringHash, VariantMap&);
 	void PM_ContinueBtnDown(StringHash, VariantMap&);
 	void PM_QuitBtnDown(StringHash, VariantMap&);
 
@@ -152,20 +125,19 @@ private:
 	void HandlePostUpdate(StringHash, VariantMap&);
 	void HandleKeyUp(StringHash, VariantMap&);
 	void HandlePhysicsPreStep(StringHash, VariantMap&);
-	void HandleMouseDown(StringHash, VariantMap&);
-	void HandlePostRenderUpdate(StringHash, VariantMap&);
 
 	// Network Methods
 	void ProcessClientControls();
 
 	// Network Callbacks
-	void HandleClientConnected(StringHash eventType, VariantMap& eventData);
-	void HandleClientDisconnected(StringHash eventType, VariantMap& eventData);
+	void HandleClientConnected(StringHash, VariantMap&);
+	void HandleClientDisconnected(StringHash, VariantMap&);
+	void HandleClientSceneLoaded(StringHash, VariantMap&);
 
 	// Client Only Callbacks
-	void HandleCharacterAllocation(StringHash eventType, VariantMap& eventData);
-	void HandleInterfaceUpdate (StringHash eventType, VariantMap& eventData);
-	void HandleClientSceneLoaded(StringHash eventType, VariantMap& eventData);
+	void HandleServerDisconnect(StringHash, VariantMap&);
+	void HandleCharacterAllocation(StringHash, VariantMap&);
+	void HandleInterfaceUpdate (StringHash, VariantMap&);
 
 	// Misc.
 	void AddConsole();

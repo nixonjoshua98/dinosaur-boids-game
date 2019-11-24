@@ -124,7 +124,7 @@ void DinosaurGame::InitialiseInterface()
 	UI* ui					= GetSubsystem<UI>();
 	UIElement* root			= ui->GetRoot();
 
-	cursor = new Cursor(context_);
+	SharedPtr<Cursor> cursor(new Cursor(context_));
 
 	root->SetDefaultStyle(cache->GetResource<XMLFile>("UI/DefaultStyle.xml"));
 	cursor->SetStyleAuto(cache->GetResource<XMLFile>(root->GetAppliedStyle()));
@@ -406,7 +406,7 @@ void DinosaurGame::UpdateShoulderCamera(float deltaTime)
 	{
 		Vector3 aimPoint	= characterNode->GetPosition() + rot * Vector3(0.0f, 1.7f, 0.0f);
 		Vector3 rayDir		= dir * Vector3::BACK;
-		float rayDistance	= touch_ ? touch_->cameraDistance_ : CAMERA_INITIAL_DIST;
+		float rayDistance = CAMERA_INITIAL_DIST;
 
 		PhysicsRaycastResult result;
 
@@ -420,23 +420,6 @@ void DinosaurGame::UpdateShoulderCamera(float deltaTime)
 		cameraNode_->SetPosition(aimPoint + rayDir * rayDistance);
 		cameraNode_->SetRotation(dir);
 	}
-}
-
-void DinosaurGame::UpdateServerCharacterControls()
-{
-	Input* input = GetSubsystem<Input>();
-
-	character->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
-	character->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
-	character->controls_.Set(CTRL_LEFT, input->GetKeyDown(KEY_A));
-	character->controls_.Set(CTRL_RIGHT, input->GetKeyDown(KEY_D));
-	character->controls_.Set(CTRL_JUMP, input->GetKeyDown(KEY_SPACE));
-
-	character->controls_.yaw_ += (float)input->GetMouseMoveX() * YAW_SENSITIVITY;
-	character->controls_.pitch_ += (float)input->GetMouseMoveY() * YAW_SENSITIVITY;
-	character->controls_.pitch_ = Clamp(character->controls_.pitch_, -80.0f, 80.0f);
-
-	character->GetNode()->SetRotation(Quaternion(character->controls_.yaw_, Vector3::UP));
 }
 
 void DinosaurGame::UpdateClientCharacterControls()
@@ -515,7 +498,7 @@ bool DinosaurGame::UpdateUI(float delta, int numBoids, int numThreads, int score
 	{
 		menuUpdateTimer = 1.0f;
 
-		fps = 1.0f / delta;
+		float fps = 1.0f / delta;
 
 		scoreWindow->SetText(score);
 
@@ -714,9 +697,8 @@ void DinosaurGame::ToggleGamePause()
 	debugWindow->Toggle();
 	scoreWindow->Toggle();
 
-	cursor->SetPosition({ 1024 / 2, 768 / 2 });
-
-	cursor->SetVisible(pauseMenu->IsShown());
+	GetSubsystem<UI>()->GetCursor()->SetPosition({ 1024 / 2, 768 / 2 });
+	GetSubsystem<UI>()->GetCursor()->SetVisible(pauseMenu->IsShown());
 
 	GetSubsystem<Input>()->SetMouseMode(pauseMenu->IsShown() ? MM_ABSOLUTE : MM_RELATIVE);
 }
