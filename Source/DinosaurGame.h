@@ -8,6 +8,7 @@ namespace Urho3D
 }
 
 class Character;
+class PlayerMissile;
 
 #include "Sample.h"
 #include "BoidManager.h"
@@ -34,8 +35,10 @@ private:
 	std::unique_ptr<BoidManager> boids;
 
 	NetworkRole networkRole;
-	Character* character;
 	Controls clientControls;
+
+	Character* character;
+	PlayerMissile* missile;	
 
 	int clientScore;
 	int clientBoidCount;
@@ -107,6 +110,9 @@ private:
 	void UpdateCharacterControls();
 	void UpdateClientCharacterControls();
 
+	//
+	void ShootMissile();
+
 	// Main Menu Callbacks
 	void MM_OfflinePlayBtnDown(StringHash, VariantMap&);
 	void MM_HostGameBtnDown(StringHash, VariantMap&);
@@ -125,6 +131,7 @@ private:
 	void HandlePostUpdate(StringHash, VariantMap&);
 	void HandleKeyUp(StringHash, VariantMap&);
 	void HandlePhysicsPreStep(StringHash, VariantMap&);
+	void HandleMouseDown(StringHash, VariantMap&);
 
 	// Network Methods
 	void ProcessClientControls();

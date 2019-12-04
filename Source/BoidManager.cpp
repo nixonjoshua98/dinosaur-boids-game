@@ -85,6 +85,11 @@ std::vector<Boid*> BoidManager::GetBoidsInCell(Vector3 pos)
 	return boidNeighbourMap[key];
 }
 
+std::vector<Boid*> BoidManager::GetBoidsInCell(std::pair<int, int> key)
+{
+	return boidNeighbourMap[key];
+}
+
 void BoidManager::SpawnBoid(int amount)
 {
 	for (int i = 0; i < amount; i++)
@@ -117,7 +122,7 @@ void BoidManager::UpdateThread(int threadID)
 			{
 				lock.lock();
 
-				std::vector<Boid*> neighbours = GetBoidsInCell(boids[i]->GetPosition());
+				std::vector<Boid*> neighbours = GetBoidsInNeighbouringCells(boids[i]->GetPosition());
 
 				lock.unlock();
 
@@ -160,6 +165,27 @@ void BoidManager::UpdateNeighbourMap()
 	}
 
 	lock.unlock();
+}
+
+std::vector<Boid*> BoidManager::GetBoidsInNeighbouringCells(Vector3 pos)
+{
+	auto key	= GetCellKey(pos);
+	auto boids	= std::vector<Boid*>();
+
+	for (int i = -1; i < 2; i++)
+	{
+		for (int j = -1; j < 2; j++)
+		{
+			std::pair<int, int> newKey = { key.first + i, key.second + j };
+
+			auto newBoids = GetBoidsInCell(newKey);
+
+			for (int i2 = 0; i2 < newBoids.size(); i2++)
+				boids.push_back(newBoids[i2]);
+		}
+	}
+
+	return boids;
 }
 
 std::pair<int, int> BoidManager::GetUpdateIndexes(int threadID)

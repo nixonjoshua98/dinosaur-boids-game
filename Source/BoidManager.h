@@ -37,6 +37,7 @@ public:
 	Boid** GetBoids() { return boids; }
 
 	std::vector<Boid*> GetBoidsInCell(Vector3 pos);
+	std::vector<Boid*> GetBoidsInCell(std::pair<int, int> key);
 
 private:
 	Boid** boids;
@@ -61,6 +62,8 @@ private:
 	void SpawnBoid(int);
 	void UpdateThread(int);
 	void UpdateNeighbourMap();
+
+	std::vector<Boid*> GetBoidsInNeighbouringCells(Vector3 pos);
 
 	std::pair<int, int> GetUpdateIndexes(int);
 	std::pair<int, int> GetCellKey(Vector3 pos);

@@ -19,14 +19,13 @@
 
 void PlayerMissile::Initialise(ResourceCache* cache, Scene* scene)
 {
-
 	node = scene->CreateChild("Missile");
 
 	staticModel			= node->CreateComponent<StaticModel>();
 	rigidBody			= node->CreateComponent<RigidBody>();
 	collisionShape		= node->CreateComponent<CollisionShape>();
 
-	staticModel->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
+	staticModel->SetModel(cache->GetResource<Model>("Models/Sphere.mdl"));
 	staticModel->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
 
 	node->SetScale(0.5f);
@@ -36,28 +35,32 @@ void PlayerMissile::Initialise(ResourceCache* cache, Scene* scene)
 	rigidBody->SetPosition({ 0.0f, 0.0f, 0.0f });
 
 	node->SetEnabled(false);
-
 }
 
 void PlayerMissile::Shoot(Vector3 spawnPos, Vector3 dir)
 {
-	Vector3 v = spawnPos + (dir * 3);
+	if (lifetime <= 0.0f)
+	{
+		Vector3 v = spawnPos + (dir * 3);
 
-	node->SetEnabled(true);
+		node->SetEnabled(true);
 
-	lifetime = 1.0f;
+		lifetime = 1.0f;
 
-	v.y_ = 1.f;
+		v.y_ = 1.f;
 
-	rigidBody->SetPosition(v);
+		rigidBody->SetPosition(v);
 
-	rigidBody->SetLinearVelocity(dir.Normalized() * speed);
-
+		rigidBody->SetLinearVelocity(dir.Normalized() * speed);
+	}
 }
 
 void PlayerMissile::Update(float delta)
 {
 	lifetime -= delta;
+
+	if (!IsEnabled())
+		return;
 
 	if (lifetime <= 0.0f)
 	{

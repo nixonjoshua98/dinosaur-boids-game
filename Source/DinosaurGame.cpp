@@ -35,6 +35,7 @@
 
 #include "Character.h"
 #include "Touch.h"
+#include "PlayerMissile.h"
 
 #include "MainMenu.h"
 #include "PauseMenu.h"
@@ -48,10 +49,6 @@
 #include "Boid.h"
 
 #include "DinosaurGame.h"
-
-/* 
-	Removed alternating updates
-*/
 
 URHO3D_DEFINE_APPLICATION_MAIN(DinosaurGame)
 
@@ -102,9 +99,12 @@ void DinosaurGame::StartGame()
 
 	boids.reset(new BoidManager());
 
+	missile = new PlayerMissile();
+
 	if (networkRole == NetworkRole::OFFLINE)
 	{
 		boids->Initialise(GetSubsystem<ResourceCache>(), scene_);
+		missile->Initialise(GetSubsystem<ResourceCache>(), scene_);
 	}
 
 	else if (networkRole == NetworkRole::SERVER)
@@ -304,6 +304,7 @@ void DinosaurGame::UnsubscribeToGameEvents()
 	UnsubscribeFromEvent(E_KEYUP);
 	UnsubscribeFromEvent(E_UPDATE);
 	UnsubscribeFromEvent(E_POSTUPDATE);
+	UnsubscribeFromEvent(E_MOUSEBUTTONDOWN);
 }
 
 void DinosaurGame::CreateOfflineScene()
@@ -387,7 +388,7 @@ void DinosaurGame::UpdateShoulderCamera(float deltaTime)
 	Quaternion dir = rot * Quaternion(controls.pitch_, Vector3::RIGHT);
 
 	Node* headNode		= characterNode->GetChild("Mutant:Head", true);
-	float limitPitch			= Clamp(controls.pitch_, -45.0f, 45.0f);
+	float limitPitch	= Clamp(controls.pitch_, -45.0f, 45.0f);
 	Quaternion headDir	= rot * Quaternion(limitPitch, Vector3(1.0f, 0.0f, 0.0f));
 
 	Vector3 headWorldTarget = headNode->GetWorldPosition() + headDir * Vector3(0.0f, 0.0f, -1.0f);
@@ -437,11 +438,17 @@ void DinosaurGame::UpdateClientCharacterControls()
 	clientControls.pitch_ = Clamp(clientControls.pitch_, -80.0f, 80.0f);
 }
 
+void DinosaurGame::ShootMissile()
+{
+	missile->Shoot(character->GetPosition(), cameraNode_->GetDirection());
+}
+
 void DinosaurGame::SubscribeToGameEvents()
 {
 	SubscribeToEvent(E_KEYUP,				URHO3D_HANDLER(DinosaurGame, HandleKeyUp));
 	SubscribeToEvent(E_UPDATE,				URHO3D_HANDLER(DinosaurGame, HandleUpdate));
 	SubscribeToEvent(E_POSTUPDATE,			URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
+	SubscribeToEvent(E_MOUSEBUTTONDOWN,		URHO3D_HANDLER(DinosaurGame, HandleMouseDown));
 
 	UnsubscribeFromEvent(E_SCENEUPDATE);
 }
@@ -542,6 +549,8 @@ void DinosaurGame::HandleUpdate(StringHash, VariantMap& eventData)
 		{
 			UpdateCharacterControls();
 			CheckCharacterCollisions(character);
+
+			missile->Update(deltaTime);
 		}
 
 		if (networkRole == NetworkRole::SERVER)
@@ -620,6 +629,16 @@ void DinosaurGame::HandlePhysicsPreStep(StringHash eventType, VariantMap& eventD
 	// Server: Read Controls, Apply them if needed
 	else if (network->IsServerRunning())
 		ProcessClientControls(); // take data from clients, process it
+}
+
+void DinosaurGame::HandleMouseDown(StringHash s, VariantMap& v)
+{
+	int key = v[MouseButtonDown::P_BUTTON].GetInt();
+
+	if (key == MOUSEB_LEFT)
+	{
+		ShootMissile();
+	}
 }
 
 void DinosaurGame::ProcessClientControls()
@@ -707,19 +726,17 @@ void DinosaurGame::CheckCharacterCollisions(Character* chara)
 {
 	Vector3 playerPos = chara->GetPosition();
 
-	std::vector<Boid*> boids = this->boids->GetBoidsInCell(playerPos);
+	std::vector<Boid*> boidsInCell = boids->GetBoidsInCell(playerPos);
 
 	const int COLLIDER_DIST = 1.0f;
 
-	for (int i = 0; i < boids.size(); i++)
+	for (int i = 0; i < boidsInCell.size(); i++)
 	{
-		if ((boids[i]->GetPosition() - playerPos).Length() < COLLIDER_DIST && boids[i]->IsEnabled())
+		if ((boidsInCell[i]->GetPosition() - playerPos).Length() < COLLIDER_DIST && boidsInCell[i]->IsEnabled())
 		{
-			boids[i]->Destroy();
+			boidsInCell[i]->Destroy();
 
 			chara->score--;
-
-			break;
 		}
 	}
 }
