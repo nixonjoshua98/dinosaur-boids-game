@@ -111,7 +111,6 @@ void BoidManager::UpdateThread(int threadID)
 
 	while (isUpdatingBoids && isRunning)
 	{
-		// Syncs the update to a single frame
 		if (frame != currentFrame)
 		{
 			frame = currentFrame;
@@ -126,7 +125,7 @@ void BoidManager::UpdateThread(int threadID)
 
 				lock.unlock();
 
-				if (neighbours.size() == 0)
+				if (neighbours.size() <= 0)
 					continue;
 
 				boids[i]->ComputeForce(neighbours);

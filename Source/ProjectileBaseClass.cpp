@@ -4,10 +4,12 @@
 
 ProjectileBaseClass::~ProjectileBaseClass()
 {
-	//for (int i = 0; i < numNodes; i++)
-	//	delete nodes[i];
+	std::cout << "Dead\n";
 
-	//delete[] nodes;
+	for (int i = 0; i < numNodes; i++)
+		delete nodes[i];
+
+	delete[] nodes;
 }
 
 void ProjectileBaseClass::Shoot(Vector3 origin, Vector3 dir)

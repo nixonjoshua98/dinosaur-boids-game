@@ -422,7 +422,12 @@ void DinosaurGame::MM_OfflinePlayBtnDown(StringHash, VariantMap&)
 	SetupGame();
 }
 
-void DinosaurGame::MM_HostGameBtnDown(StringHash, VariantMap&)	{ StartGame_Server(); }
+void DinosaurGame::MM_HostGameBtnDown(StringHash, VariantMap&)	
+{ 
+	GetSubsystem<UI>()->GetCursor()->SetVisible(false);
+
+	StartGame_Server();
+}
 void DinosaurGame::MM_QuitGameBtnDown(StringHash, VariantMap&)	{ Quit(); }
 void DinosaurGame::PM_ContinueBtnDown(StringHash, VariantMap&)	{ ToggleGamePause(); }
 void DinosaurGame::PM_QuitBtnDown(StringHash, VariantMap&)		{ Quit(); }
@@ -430,6 +435,8 @@ void DinosaurGame::PM_QuitBtnDown(StringHash, VariantMap&)		{ Quit(); }
 void DinosaurGame::JoinGameFromMainMenu(StringHash, VariantMap&) 
 { 
 	player = Player();
+
+	GetSubsystem<UI>()->GetCursor()->SetVisible(false);
 
 	StartGame_Client();
 }
@@ -487,7 +494,7 @@ void DinosaurGame::PM_JoinSvrBtnDown(StringHash a, VariantMap& b)
 		break;
 	}
 
-	GetSubsystem<UI>()->GetCursor()->SetVisible(true);
+	GetSubsystem<UI>()->GetCursor()->SetVisible(false);
 
 	StartGame_Client();
 }
@@ -663,21 +670,13 @@ void DinosaurGame::HandleClientDisconnected(StringHash eventType, VariantMap& ev
 
 void DinosaurGame::HandleCharacterAllocation(StringHash eventType, VariantMap& eventData)
 {
-	//unsinged int nodeID = eventData["nodeID"].GetUInt();
+	unsigned int nodeID = eventData["nodeID"].GetUInt();
 
-	std::cout << "a,";
+	Node* n = scene_->GetNode(nodeID);
 
-	//Node* n = scene_->GetNode(nodeID);
-
-	std::cout << "b,";
-
-	//player = Player(n);
-
-	std::cout << "c,";
+	player = Player(n);
 
 	SubscribeToGameEvents_Client();
-
-	std::cout << "d\n";
 }
 
 void DinosaurGame::HandleInterfaceUpdate_Client(StringHash eventType, VariantMap& eventData)

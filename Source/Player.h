@@ -13,7 +13,9 @@ private:
 	WeakPtr<Node> characterNode;
 
 	Controls controls;
-	StraightProjectile straightProjectile;
+
+	// Projectiles
+	StraightProjectile* straightProjectile;
 
 public:
 	Player();

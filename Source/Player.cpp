@@ -15,22 +15,24 @@ Player::Player()
 
 Player::Player(Node* _characterNode, bool _usingCharacterControls)
 {
-	characterNode = _characterNode;
 
-	assignedCharacter = true;
-	usingCharacterControls = _usingCharacterControls;
+	characterNode			= _characterNode;
+	assignedCharacter		= true;
+	usingCharacterControls	= _usingCharacterControls;
 
-	straightProjectile.Initialise(_characterNode->GetContext()->GetSubsystem<ResourceCache>(), _characterNode->GetScene());
+	straightProjectile = new StraightProjectile();
+
+	straightProjectile->Initialise(_characterNode->GetContext()->GetSubsystem<ResourceCache>(), _characterNode->GetScene());
 }
 
 void Player::UpdateMissile(float delta)
 {
-	straightProjectile.Update(delta);
+	straightProjectile->Update(delta);
 }
 
 void Player::Shoot(Vector3 origin, Vector3 dir)
 {
-	straightProjectile.Shoot(origin, dir);
+	straightProjectile->Shoot(origin, dir);
 }
 
 void Player::SetScore(int score)
@@ -40,5 +42,5 @@ void Player::SetScore(int score)
 
 std::vector<Vector3> Player::GetProjectilePositions()
 {
-	return straightProjectile.GetPositions();
+	return straightProjectile->GetPositions();
 }
