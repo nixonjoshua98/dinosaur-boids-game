@@ -35,7 +35,6 @@
 
 #include "Character.h"
 #include "Touch.h"
-#include "PlayerMissile.h"
 
 #include "MainMenu.h"
 #include "PauseMenu.h"
@@ -67,14 +66,13 @@ DinosaurGame::~DinosaurGame()
 
 }
 
-
 void DinosaurGame::Start()
 {
 	Sample::Start();
 	
 	InitialiseInterface();
 
-	SetupMainMenu();
+	SetupAndShowMainMenu();
 
 	AddConsole();
 
@@ -83,7 +81,154 @@ void DinosaurGame::Start()
 	Sample::InitMouseMode(MM_ABSOLUTE);
 }
 
-void DinosaurGame::StartGame()
+void DinosaurGame::SubscribeToGameEvents()
+{
+	SubscribeToEvent(E_KEYUP,		URHO3D_HANDLER(DinosaurGame, HandleKeyUp));
+	SubscribeToEvent(E_POSTUPDATE,	URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
+
+	UnsubscribeFromEvent(E_SCENEUPDATE);
+}
+
+void DinosaurGame::SubscribeToNetworkEvents_Client()
+{
+	SubscribeToEvent(E_CLIENTOBJECTAUTHORITY, URHO3D_HANDLER(DinosaurGame, HandleCharacterAllocation));
+	SubscribeToEvent(E_UPDATEINTERFACE, URHO3D_HANDLER(DinosaurGame, HandleInterfaceUpdate_Client));
+
+	GetSubsystem<Network>()->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);
+	GetSubsystem<Network>()->RegisterRemoteEvent(E_UPDATEINTERFACE);
+}
+
+void DinosaurGame::UpdateControls(Controls& controls)
+{
+	Input* input = GetSubsystem<Input>();
+
+	controls.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
+	controls.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
+	controls.Set(CTRL_LEFT, input->GetKeyDown(KEY_A));
+	controls.Set(CTRL_RIGHT, input->GetKeyDown(KEY_D));
+	controls.Set(CTRL_JUMP, input->GetKeyDown(KEY_SPACE));
+
+	controls.Set(CTRL_SHOOT, input->GetMouseButtonDown(MOUSEB_LEFT));
+
+	controls.yaw_ += (float)input->GetMouseMoveX() * YAW_SENSITIVITY;
+	controls.pitch_ += (float)input->GetMouseMoveY() * YAW_SENSITIVITY;
+
+	//controls.pitch_ = Clamp(clientControls.pitch_, -80.0f, 80.0f);
+}
+
+void DinosaurGame::HandleUpdate_Client(StringHash, VariantMap& eventData)
+{
+	float delta = eventData[Update::P_TIMESTEP].GetFloat();
+
+	UpdateInterface_Client(delta);
+
+	UpdateControls_Client();
+}
+
+void DinosaurGame::HandleUpdate_Server(StringHash, VariantMap& eventData)
+{
+	float delta = eventData[Update::P_TIMESTEP].GetFloat();
+
+	UpdateInterface_Server(delta);
+
+	if (player.AssignedCharacter())
+	{
+		UpdateControls_Server();
+
+		CheckCharacterCollisions(player.GetCharacter());
+
+		CheckProjectileCollisions(player);
+
+		player.UpdateMissile(delta);
+	}
+
+	for (Connection* con : clients.Keys())
+	{
+		clients[con].UpdateMissile(delta);
+
+		CheckCharacterCollisions(clients[con].GetCharacter());
+
+		CheckProjectileCollisions(clients[con]);
+	}
+
+	boids->Update(delta);
+}
+
+void DinosaurGame::HandlePhysicsPreStep_Client(StringHash, VariantMap&)
+{
+	Network* network = GetSubsystem<Network>();
+
+	Connection* serverConnection = network->GetServerConnection();
+	
+	serverConnection->SetPosition(cameraNode_->GetDirection());
+	serverConnection->SetControls(player.GetControls());
+}
+
+void DinosaurGame::HandlePhysicsPreStep_Server(StringHash, VariantMap&)
+{
+	ProcessClientControls();
+}
+
+void DinosaurGame::StartGame_Client()
+{
+	networkRole = NetworkRole::CLIENT;
+
+	player = Player();
+
+	SetupGame();
+
+	boids->Initialise();
+
+	CreateScene_Client();
+
+	SubscribeToNetworkEvents_Client();
+
+	String address = mainMenu->ipAddress->GetText().Trimmed();
+
+	ConnectToServer(address.Empty() ? "localhost" : address);
+}
+
+void DinosaurGame::StartGame_Server()
+{
+	networkRole = NetworkRole::SERVER;
+
+	SetupGame();
+
+	CreateScene_Server();
+
+	player = Player(CreateCharacter()->GetNode(), true);
+
+	StartServer();
+
+	boids->Initialise(GetSubsystem<ResourceCache>(), scene_);
+
+	SubscribeToGameEvents_Server();
+}
+
+void DinosaurGame::CreateScene_Client()
+{
+	if (scene_ != nullptr)
+		scene_->Clear();
+
+	CreateScene(LOCAL);
+	CreateCamera();
+	CreateLighting();
+	CreateFloor();
+}
+
+void DinosaurGame::CreateScene_Server()
+{
+	if (scene_ != nullptr)
+		scene_->Clear();
+
+	CreateScene(REPLICATED);
+	CreateCamera();
+	CreateZone(REPLICATED);
+	CreateLighting();
+	CreateFloor();
+}
+
+void DinosaurGame::SetupGame()
 {
 	SetupPauseMenu();
 
@@ -95,27 +240,127 @@ void DinosaurGame::StartGame()
 
 	scoreWindow->Show();
 
-	SubscribeToGameEvents();
-
 	boids.reset(new BoidManager());
 
-	missile = new PlayerMissile();
+	cameraMode = CameraMode::SHOULDER;
+}
 
-	if (networkRole == NetworkRole::OFFLINE)
+void DinosaurGame::SubscribeToGameEvents_Client()
+{
+	SubscribeToGameEvents();
+
+	SubscribeToEvent(E_UPDATE,			URHO3D_HANDLER(DinosaurGame, HandleUpdate_Client));
+	SubscribeToEvent(E_PHYSICSPRESTEP,	URHO3D_HANDLER(DinosaurGame, HandlePhysicsPreStep_Client));
+}
+
+void DinosaurGame::SubscribeToGameEvents_Server()
+{
+	SubscribeToGameEvents();
+
+	SubscribeToEvent(E_CLIENTCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleClientConnected));
+	SubscribeToEvent(E_CLIENTDISCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleClientDisconnected));
+	SubscribeToEvent(E_CLIENTSCENELOADED, URHO3D_HANDLER(DinosaurGame, HandleClientSceneLoaded));
+
+	SubscribeToEvent(E_MOUSEBUTTONDOWN, URHO3D_HANDLER(DinosaurGame, HandleMouseDown_Server));
+	SubscribeToEvent(E_UPDATE,			URHO3D_HANDLER(DinosaurGame, HandleUpdate_Server));
+	SubscribeToEvent(E_PHYSICSPRESTEP,	URHO3D_HANDLER(DinosaurGame, HandlePhysicsPreStep_Server));
+
+	GetSubsystem<Network>()->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);
+	GetSubsystem<Network>()->RegisterRemoteEvent(E_UPDATEINTERFACE);
+}
+
+void DinosaurGame::UpdateControls_Client()
+{
+	UpdateControls(player.GetControls());
+}
+
+void DinosaurGame::UpdateControls_Server()
+{
+	Character* c = player.GetCharacter();
+
+	Controls& controls = player.GetControls();
+
+	UpdateControls(controls);
+
+	c->GetNode()->SetRotation(Quaternion(c->controls_.yaw_, Vector3::UP));
+}
+
+void DinosaurGame::UpdateInterface_Client(float delta)
+{
+	if (clientUI.isUpdated)
 	{
-		boids->Initialise(GetSubsystem<ResourceCache>(), scene_);
-		missile->Initialise(GetSubsystem<ResourceCache>(), scene_);
+		float fps = 1.0f / delta;
+
+		scoreWindow->SetText(clientUI.score);
+		debugWindow->SetText(fps, clientUI.numBoids, 0);
+
+		clientUI.isUpdated = false;
+	}
+}
+
+void DinosaurGame::UpdateInterface_Server(float delta)
+{
+	menuTimer -= delta;
+
+	if (menuTimer <= 0.0f)
+	{
+		menuTimer = 1.0f;
+
+		float fps = 1.0f / delta;
+
+		scoreWindow->SetText(player.GetScore());
+		debugWindow->SetText(fps, boids->GetNumEnabledBoids(), NUM_BOID_THREADS);
+
+		UpdateClientInterface_Server();
+	}
+}
+
+void DinosaurGame::UpdateClientInterface_Server()
+{
+	VariantMap remoteData;
+
+	remoteData["boidNum"] = boids->GetNumEnabledBoids();
+
+	Network* network = GetSubsystem<Network>();
+
+	const Vector< SharedPtr<Connection> >& connections = network->GetClientConnections();
+
+	for (unsigned i = 0; i < connections.Size(); ++i)
+	{
+		Connection* con = connections[i];
+
+		remoteData["score"] = clients[con].GetCharacter()->score;
+
+		con->SendRemoteEvent(E_UPDATEINTERFACE, true, remoteData);
+	}
+}
+
+void DinosaurGame::HandleMouseDown_Server(StringHash, VariantMap& eventData)
+{
+	int key = eventData[MouseButtonDown::P_BUTTON].GetInt();
+
+	switch (key)
+	{
+	case MOUSEB_LEFT:
+		ShootMissile();
+		break;
+	}
+}
+
+void DinosaurGame::HandlePostUpdate(StringHash, VariantMap& eventData)
+{
+	float deltaTime = eventData[PostUpdate::P_TIMESTEP].GetFloat();
+
+	if (cameraMode == CameraMode::FREE)
+	{
+		UpdateFreeCamera(deltaTime);
 	}
 
-	else if (networkRole == NetworkRole::SERVER)
+	else if (player.AssignedCharacter() && cameraMode == CameraMode::SHOULDER)
 	{
-		boids->Initialise(GetSubsystem<ResourceCache>(), scene_);
+		UpdateShoulderCamera(deltaTime);
 	}
-	
-	else if (networkRole == NetworkRole::CLIENT)
-	{
-		boids->Initialise();
-	}
+
 }
 
 void DinosaurGame::InitialiseInterface()
@@ -148,13 +393,13 @@ void DinosaurGame::InitialiseInterface()
 	controlsWindow->Show();
 }
 
-void DinosaurGame::SetupMainMenu()
+void DinosaurGame::SetupAndShowMainMenu()
 {
 	mainMenu->Show();
 
 	SubscribeToEvent(mainMenu->offlinePlayBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, MM_OfflinePlayBtnDown));
 	SubscribeToEvent(mainMenu->hostOnlineBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, MM_HostGameBtnDown));
-	SubscribeToEvent(mainMenu->joinOnlineBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, MM_JoinGameBtnDown));
+	SubscribeToEvent(mainMenu->joinOnlineBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, JoinGameFromMainMenu));
 	SubscribeToEvent(mainMenu->quitBtn,			E_RELEASED, URHO3D_HANDLER(DinosaurGame, MM_QuitGameBtnDown));
 }
 
@@ -164,7 +409,6 @@ void DinosaurGame::SetupPauseMenu()
 
 	SubscribeToEvent(pauseMenu->continueBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, PM_ContinueBtnDown));
 	SubscribeToEvent(pauseMenu->disconnectBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, PM_DisconnectBtnDown));
-	SubscribeToEvent(pauseMenu->startSvrBtn,	E_RELEASED, URHO3D_HANDLER(DinosaurGame, PM_StartSvrBtnDown));
 	SubscribeToEvent(pauseMenu->connectBtn,		E_RELEASED, URHO3D_HANDLER(DinosaurGame, PM_JoinSvrBtnDown));
 	SubscribeToEvent(pauseMenu->quitBtn,		E_RELEASED, URHO3D_HANDLER(DinosaurGame, PM_QuitBtnDown));
 }
@@ -175,128 +419,77 @@ void DinosaurGame::MM_OfflinePlayBtnDown(StringHash, VariantMap&)
 
 	CreateOfflineScene();
 
-	StartGame();
+	SetupGame();
 }
 
-void DinosaurGame::MM_HostGameBtnDown(StringHash, VariantMap&)
-{
-	networkRole = NetworkRole::SERVER;
+void DinosaurGame::MM_HostGameBtnDown(StringHash, VariantMap&)	{ StartGame_Server(); }
+void DinosaurGame::MM_QuitGameBtnDown(StringHash, VariantMap&)	{ Quit(); }
+void DinosaurGame::PM_ContinueBtnDown(StringHash, VariantMap&)	{ ToggleGamePause(); }
+void DinosaurGame::PM_QuitBtnDown(StringHash, VariantMap&)		{ Quit(); }
 
-	CreateServerScene();
-	StartServer();
-	SubscribeToServerEvents();
-	StartGame();
-}
+void DinosaurGame::JoinGameFromMainMenu(StringHash, VariantMap&) 
+{ 
+	player = Player();
 
-void DinosaurGame::MM_JoinGameBtnDown(StringHash, VariantMap&)
-{
-	networkRole = NetworkRole::CLIENT;
-
-	CreateClientScene();
-
-	String address = mainMenu->ipAddress->GetText().Trimmed();
-
-	ConnectToServer(address.Empty() ? "localhost" : address);
-
-	SubscribeToClientEvents();
-
-	StartGame();
-}
-
-void DinosaurGame::MM_QuitGameBtnDown(StringHash, VariantMap&)
-{
-	Quit();
-}
-
-void DinosaurGame::PM_ContinueBtnDown(StringHash, VariantMap&)
-{
-	ToggleGamePause();
-}
-
-void DinosaurGame::PM_QuitBtnDown(StringHash, VariantMap&)
-{
-	Quit();
+	StartGame_Client();
 }
 
 void DinosaurGame::PM_DisconnectBtnDown(StringHash, VariantMap&)
 {
-	Network* network = GetSubsystem<Network>();
-
-	hasCharacter = false;
-
 	UnsubscribeToGameEvents();
 
-	if (networkRole == NetworkRole::SERVER)
+	Network* network = GetSubsystem<Network>();
+
+	switch (networkRole)
 	{
+	case NetworkRole::CLIENT:
+		network->Disconnect();
+		break;
+
+	case NetworkRole::SERVER:
 		network->StopServer();
+		break;
 	}
 
-	else
-	{
-		if (networkRole == NetworkRole::CLIENT)
-		{
-			network->Disconnect();
-		}
-	}
+	ToggleGamePause();
+
+	Cursor* cur = GetSubsystem<UI>()->GetCursor();
+	Input* inp = GetSubsystem<Input>();
+
+	cur->SetVisible(true);
+	inp->SetMouseMode(MM_ABSOLUTE);
 
 	scene_->Clear();
 
 	scoreWindow->Hide();
-	pauseMenu->Hide();
-	debugWindow->Hide();
 
 	mainMenu->Show();
-}
 
-void DinosaurGame::PM_StartSvrBtnDown(StringHash s, VariantMap& v)
-{
-	Network* network = GetSubsystem<Network>();
-
-	hasCharacter = false;
-
-	UnsubscribeToGameEvents();
-
-	if (networkRole == NetworkRole::SERVER)
-	{
-		network->StopServer();
-	}
-
-	else
-	{
-		if (networkRole == NetworkRole::CLIENT)
-		{
-			network->Disconnect();
-		}
-	}
-
-	scene_->Clear();
-
-	networkRole = NetworkRole::SERVER;
-
-	CreateServerScene();
-	StartServer();
-	SubscribeToServerEvents();
-	StartGame();
+	player = Player();
 }
 
 void DinosaurGame::PM_JoinSvrBtnDown(StringHash a, VariantMap& b)
 {
-	UnsubscribeFromEvent(E_SERVERDISCONNECTED);
-
 	UnsubscribeToGameEvents();
-
-	hasCharacter = false;
 
 	ToggleGamePause();
 
-	MM_JoinGameBtnDown(a, b);
+	Network* network = GetSubsystem<Network>();
 
-	SubscribeToEvent(E_SERVERDISCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleServerDisconnect));
-}
+	switch (networkRole)
+	{
+	case NetworkRole::CLIENT:
+		network->Disconnect();
+		break;
 
-void DinosaurGame::HandleServerDisconnect(StringHash s, VariantMap& v)
-{
-	PM_DisconnectBtnDown(s, v);
+	case NetworkRole::SERVER:
+		network->StopServer();
+		break;
+	}
+
+	GetSubsystem<UI>()->GetCursor()->SetVisible(true);
+
+	StartGame_Client();
 }
 
 void DinosaurGame::UnsubscribeToGameEvents()
@@ -304,6 +497,7 @@ void DinosaurGame::UnsubscribeToGameEvents()
 	UnsubscribeFromEvent(E_KEYUP);
 	UnsubscribeFromEvent(E_UPDATE);
 	UnsubscribeFromEvent(E_POSTUPDATE);
+	UnsubscribeFromEvent(E_PHYSICSPRESTEP);
 	UnsubscribeFromEvent(E_MOUSEBUTTONDOWN);
 }
 
@@ -314,32 +508,6 @@ void DinosaurGame::CreateOfflineScene()
 	CreateZone(LOCAL);
 	CreateLighting();
 	CreateFloor();
-
-	character = CreateCharacter();
-
-	hasCharacter = true;
-}
-
-void DinosaurGame::CreateClientScene()
-{
-	CreateScene(LOCAL);
-	CreateCamera();
-	CreateLighting();
-	CreateFloor();
-}
-
-void DinosaurGame::CreateServerScene()
-{
-	CreateScene(REPLICATED);
-	CreateCamera();
-	CreateZone(REPLICATED);
-	CreateLighting();
-	CreateFloor();
-	CreateMushroom();
-
-	character = CreateCharacter();
-
-	hasCharacter = true;
 }
 
 void DinosaurGame::UpdateFreeCamera(float deltaTime)
@@ -372,17 +540,9 @@ void DinosaurGame::UpdateFreeCamera(float deltaTime)
 
 void DinosaurGame::UpdateShoulderCamera(float deltaTime)
 {
-	Controls controls;
+	Node* characterNode = player.GetCharacterNode();
 
-	Node* characterNode = character->GetNode();
-
-	// Client
-	if (networkRole == NetworkRole::CLIENT)
-		controls = clientControls;
-
-	// Server / Offline
-	else
-		controls = character->controls_;
+	Controls controls = player.GetControls();
 
 	Quaternion rot = characterNode->GetRotation();
 	Quaternion dir = rot * Quaternion(controls.pitch_, Vector3::RIGHT);
@@ -423,166 +583,9 @@ void DinosaurGame::UpdateShoulderCamera(float deltaTime)
 	}
 }
 
-void DinosaurGame::UpdateClientCharacterControls()
-{
-	Input* input = GetSubsystem<Input>();
-
-	clientControls.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
-	clientControls.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
-	clientControls.Set(CTRL_LEFT, input->GetKeyDown(KEY_A));
-	clientControls.Set(CTRL_RIGHT, input->GetKeyDown(KEY_D));
-	clientControls.Set(CTRL_JUMP, input->GetKeyDown(KEY_SPACE));
-
-	clientControls.yaw_ += (float)input->GetMouseMoveX() * YAW_SENSITIVITY;
-	clientControls.pitch_ += (float)input->GetMouseMoveY() * YAW_SENSITIVITY;
-	clientControls.pitch_ = Clamp(clientControls.pitch_, -80.0f, 80.0f);
-}
-
 void DinosaurGame::ShootMissile()
 {
-	missile->Shoot(character->GetPosition(), cameraNode_->GetDirection());
-}
-
-void DinosaurGame::SubscribeToGameEvents()
-{
-	SubscribeToEvent(E_KEYUP,				URHO3D_HANDLER(DinosaurGame, HandleKeyUp));
-	SubscribeToEvent(E_UPDATE,				URHO3D_HANDLER(DinosaurGame, HandleUpdate));
-	SubscribeToEvent(E_POSTUPDATE,			URHO3D_HANDLER(DinosaurGame, HandlePostUpdate));
-	SubscribeToEvent(E_MOUSEBUTTONDOWN,		URHO3D_HANDLER(DinosaurGame, HandleMouseDown));
-
-	UnsubscribeFromEvent(E_SCENEUPDATE);
-}
-
-void DinosaurGame::SubscribeToServerEvents()
-{
-	SubscribeToEvent(E_CLIENTCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleClientConnected));
-	SubscribeToEvent(E_CLIENTDISCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleClientDisconnected));
-	SubscribeToEvent(E_CLIENTSCENELOADED, URHO3D_HANDLER(DinosaurGame, HandleClientSceneLoaded));
-
-	SubscribeToEvent(E_PHYSICSPRESTEP, URHO3D_HANDLER(DinosaurGame, HandlePhysicsPreStep));
-
-	GetSubsystem<Network>()->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);
-	GetSubsystem<Network>()->RegisterRemoteEvent(E_UPDATEINTERFACE);
-}
-
-void DinosaurGame::SubscribeToClientEvents()
-{
-	SubscribeToEvent(E_PHYSICSPRESTEP, URHO3D_HANDLER(DinosaurGame, HandlePhysicsPreStep));
-
-	SubscribeToEvent(E_SERVERDISCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleServerDisconnect));
-
-	SubscribeToEvent(E_CLIENTOBJECTAUTHORITY, URHO3D_HANDLER(DinosaurGame, HandleCharacterAllocation));
-
-	SubscribeToEvent(E_UPDATEINTERFACE, URHO3D_HANDLER(DinosaurGame, HandleInterfaceUpdate));
-
-	GetSubsystem<Network>()->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);
-	GetSubsystem<Network>()->RegisterRemoteEvent(E_UPDATEINTERFACE);
-
-}
-
-void DinosaurGame::UpdateCharacterControls()
-{
-	Input* input = GetSubsystem<Input>();
-
-	character->controls_.Set(CTRL_FORWARD, input->GetKeyDown(KEY_W));
-	character->controls_.Set(CTRL_BACK, input->GetKeyDown(KEY_S));
-	character->controls_.Set(CTRL_LEFT, input->GetKeyDown(KEY_A));
-	character->controls_.Set(CTRL_RIGHT, input->GetKeyDown(KEY_D));
-	character->controls_.Set(CTRL_JUMP, input->GetKeyDown(KEY_SPACE));
-
-	character->controls_.yaw_ += (float)input->GetMouseMoveX() * YAW_SENSITIVITY;
-	character->controls_.pitch_ += (float)input->GetMouseMoveY() * YAW_SENSITIVITY;
-	character->controls_.pitch_ = Clamp(character->controls_.pitch_, -80.0f, 80.0f);
-
-	character->GetNode()->SetRotation(Quaternion(character->controls_.yaw_, Vector3::UP));
-}
-
-bool DinosaurGame::UpdateUI(float delta, int numBoids, int numThreads, int score)
-{
-	menuUpdateTimer -= delta;
-
-	if (menuUpdateTimer <= 0.0f)
-	{
-		menuUpdateTimer = 1.0f;
-
-		float fps = 1.0f / delta;
-
-		scoreWindow->SetText(score);
-
-		debugWindow->SetText(fps, numBoids, numThreads);
-
-		return true;
-	}
-
-	return false;
-}
-
-void DinosaurGame::UpdateClientsUI()
-{
-	VariantMap remoteData;
-
-	remoteData["boidNum"] = boids->GetNumEnabledBoids();
-
-	Network* network = GetSubsystem<Network>();
-
-	const Vector< SharedPtr<Connection> >& connections = network->GetClientConnections();
-
-	for (unsigned i = 0; i < connections.Size(); ++i)
-	{
-		Connection* connection = connections[i];
-
-		remoteData["score"] = charactersTable[connection]->GetComponent<Character>()->score;
-
-		connection->SendRemoteEvent(E_UPDATEINTERFACE, true, remoteData);
-	}
-}
-
-void DinosaurGame::HandleUpdate(StringHash, VariantMap& eventData)
-{
-	float deltaTime = eventData[Update::P_TIMESTEP].GetFloat();
-
-	if (networkRole == NetworkRole::OFFLINE || networkRole == NetworkRole::SERVER)
-	{
-		bool updatedUI = UpdateUI(deltaTime, boids->GetNumEnabledBoids(), NUM_BOID_THREADS, character->score);
-
-		if (hasCharacter)
-		{
-			UpdateCharacterControls();
-			CheckCharacterCollisions(character);
-
-			missile->Update(deltaTime);
-		}
-
-		if (networkRole == NetworkRole::SERVER)
-		{
-			for (Connection* con : charactersTable.Keys())
-				CheckCharacterCollisions(charactersTable[con]->GetComponent<Character>());
-
-			if (updatedUI)
-				UpdateClientsUI();
-		}
-
-		boids->Update(deltaTime);
-	}
-
-	else if (networkRole == NetworkRole::CLIENT)
-	{
-		UpdateUI(deltaTime, clientBoidCount, 0, clientScore);
-
-		UpdateClientCharacterControls();
-	}
-}
-
-void DinosaurGame::HandlePostUpdate(StringHash, VariantMap& eventData)
-{
-	float deltaTime = eventData[PostUpdate::P_TIMESTEP].GetFloat();
-
-	if (usingFreeCamera)
-		UpdateFreeCamera(deltaTime);
-
-	else if (hasCharacter && !usingFreeCamera)
-		UpdateShoulderCamera(deltaTime);
-
+	player.Shoot(player.GetCharacterPosition(), cameraNode_->GetDirection());
 }
 
 void DinosaurGame::HandleKeyUp(StringHash, VariantMap& eventData)
@@ -596,7 +599,7 @@ void DinosaurGame::HandleKeyUp(StringHash, VariantMap& eventData)
 		break;
 
 	case KEY_F3:
-		usingFreeCamera = !usingFreeCamera;
+		cameraMode = cameraMode == CameraMode::FREE ? CameraMode::SHOULDER : CameraMode::FREE;
 		break;
 
 	case KEY_F4:
@@ -613,101 +616,84 @@ void DinosaurGame::HandleKeyUp(StringHash, VariantMap& eventData)
 	}
 }
 
-void DinosaurGame::HandlePhysicsPreStep(StringHash eventType, VariantMap& eventData)
-{
-	Network* network = GetSubsystem<Network>();
-
-	Connection* serverConnection = network->GetServerConnection();
-
-	// Client: Collect controls
-	if (serverConnection)
-	{
-		serverConnection->SetPosition(cameraNode_->GetPosition()); // send camera position too
-		serverConnection->SetControls(clientControls); // send controls to server
-	}
-
-	// Server: Read Controls, Apply them if needed
-	else if (network->IsServerRunning())
-		ProcessClientControls(); // take data from clients, process it
-}
-
-void DinosaurGame::HandleMouseDown(StringHash s, VariantMap& v)
-{
-	int key = v[MouseButtonDown::P_BUTTON].GetInt();
-
-	if (key == MOUSEB_LEFT)
-	{
-		ShootMissile();
-	}
-}
-
 void DinosaurGame::ProcessClientControls()
 {
 	Network* network = GetSubsystem<Network>();
 
 	const Vector< SharedPtr<Connection> >& connections = network->GetClientConnections();
 
-	// Go through every client connected
 	for (unsigned i = 0; i < connections.Size(); ++i)
 	{
-		Connection* connection = connections[i];
+		Connection* con = connections[i];
 
-		const Controls& controls = connection->GetControls();
+		const Controls& controls = con->GetControls();
 
-		Character* c = charactersTable[connection]->GetComponent<Character>();
+		Character* c = clients[con].GetCharacter();
 
 		c->controls_ = controls;
 
-		charactersTable[connection]->SetRotation(Quaternion(controls.yaw_, Vector3::UP));
+		c->GetNode()->SetRotation(Quaternion(controls.yaw_, Vector3::UP));
+
+		if (c->controls_.IsDown(CTRL_SHOOT))
+		{
+			clients[con].Shoot(c->GetPosition(), con->GetPosition());
+		}
 	}
 }																	  
 
 void DinosaurGame::HandleClientConnected(StringHash eventType, VariantMap& eventData)
 {
-	Connection* clientCon = static_cast<Connection*>(eventData[ClientConnected::P_CONNECTION].GetPtr());
+	Connection* con = static_cast<Connection*>(eventData[ClientConnected::P_CONNECTION].GetPtr());
 
 	Character* c = CreateCharacter();	 
 
-	charactersTable[clientCon] = c->GetNode();
+	clients[con] = Player(c->GetNode());
 
-	clientCon->SetScene(scene_);
+	con->SetScene(scene_);
 }
 
 void DinosaurGame::HandleClientDisconnected(StringHash eventType, VariantMap& eventData)
 {
-	Connection* clientCon = static_cast<Connection*>(eventData[ClientDisconnected::P_CONNECTION].GetPtr());
+	Connection* con = static_cast<Connection*>(eventData[ClientDisconnected::P_CONNECTION].GetPtr());
 
-	charactersTable[clientCon]->Remove();
+	clients[con].DestroyCharacter();
 
-	charactersTable.Erase(clientCon);
+	clients.Erase(con);
 }
 
 void DinosaurGame::HandleCharacterAllocation(StringHash eventType, VariantMap& eventData)
 {
-	nodeID = eventData["nodeID"].GetUInt();
+	//unsinged int nodeID = eventData["nodeID"].GetUInt();
 
-	Node* n = scene_->GetNode(nodeID);
-	
-	character = n->GetComponent<Character>();
+	std::cout << "a,";
 
-	hasCharacter = true;
+	//Node* n = scene_->GetNode(nodeID);
+
+	std::cout << "b,";
+
+	//player = Player(n);
+
+	std::cout << "c,";
+
+	SubscribeToGameEvents_Client();
+
+	std::cout << "d\n";
 }
 
-void DinosaurGame::HandleInterfaceUpdate(StringHash eventType, VariantMap& eventData)
+void DinosaurGame::HandleInterfaceUpdate_Client(StringHash eventType, VariantMap& eventData)
 {
-	clientScore		= eventData["score"].GetInt();
-	clientBoidCount = eventData["boidNum"].GetUInt();
+	clientUI = ClientUI({true, eventData["boidNum"].GetInt(), eventData["score"].GetInt()});
 }
 
 void DinosaurGame::HandleClientSceneLoaded(StringHash eventType, VariantMap& eventData)
 {
-	Connection* clientCon = static_cast<Connection*>(eventData[ClientSceneLoaded::P_CONNECTION].GetPtr());
+	Connection* con = static_cast<Connection*>(eventData[ClientSceneLoaded::P_CONNECTION].GetPtr());
 
 	VariantMap remoteData;
 
-	remoteData["nodeID"] = charactersTable[clientCon]->GetID();
+	remoteData["nodeID"] = clients[con].GetCharacterNode()->GetID();
 
-	clientCon->SendRemoteEvent(E_CLIENTOBJECTAUTHORITY, true, remoteData);
+	con->SendRemoteEvent(E_CLIENTOBJECTAUTHORITY, true, remoteData);
 }
 
 void DinosaurGame::ToggleGamePause()
@@ -716,7 +702,7 @@ void DinosaurGame::ToggleGamePause()
 	debugWindow->Toggle();
 	scoreWindow->Toggle();
 
-	GetSubsystem<UI>()->GetCursor()->SetPosition({ 1024 / 2, 768 / 2 });
+	//GetSubsystem<UI>()->GetCursor()->SetPosition({ 1024 / 2, 768 / 2 });
 	GetSubsystem<UI>()->GetCursor()->SetVisible(pauseMenu->IsShown());
 
 	GetSubsystem<Input>()->SetMouseMode(pauseMenu->IsShown() ? MM_ABSOLUTE : MM_RELATIVE);
@@ -739,6 +725,34 @@ void DinosaurGame::CheckCharacterCollisions(Character* chara)
 			chara->score--;
 		}
 	}
+}
+
+void DinosaurGame::CheckProjectileCollisions(Player player)
+{
+	std::vector<Vector3> positions = player.GetProjectilePositions();
+
+	const int COLLIDER_DIST = 1.5f;
+
+	int hits = 0;
+
+	for (int i = 0; i < positions.size(); ++i)
+	{
+		Vector3 p = positions[i];
+
+		std::vector<Boid*> boidsInCell = boids->GetBoidsInCell(p);
+
+		for (int j = 0; j < boidsInCell.size(); j++)
+		{
+			if ((boidsInCell[j]->GetPosition() - p).Length() < COLLIDER_DIST && boidsInCell[j]->IsEnabled())
+			{
+				boidsInCell[j]->Destroy();
+
+				hits++;
+			}
+		}
+	}
+
+	player.SetScore(player.GetScore() - hits);
 }
 
 void DinosaurGame::ConnectToServer(String addr)
@@ -776,10 +790,10 @@ Character* DinosaurGame::CreateCharacter()
 
 	AnimatedModel* object				= adjustNode->CreateComponent<AnimatedModel>(REPLICATED);
 	RigidBody* body						= charNode->CreateComponent<RigidBody>(REPLICATED);
-	CollisionShape* shape				= charNode->CreateComponent<CollisionShape>(REPLICATED);
+	CollisionShape* shape				= charNode->CreateComponent<CollisionShape>(LOCAL);
 	AnimationController* animController = adjustNode->CreateComponent<AnimationController>(REPLICATED);
 
-	Character* chara = charNode->CreateComponent<Character>(REPLICATED);
+	Character* chara = charNode->CreateComponent<Character>(LOCAL);
 
 	charNode->SetPosition({ 0.0f, 1.0f, 0.0f });
 
@@ -798,7 +812,7 @@ Character* DinosaurGame::CreateCharacter()
 
 	shape->SetCapsule(0.7f, 1.8f, Vector3(0.0f, 0.9f, 0.0f));
 
-	chara->controls_.Set(CTRL_FORWARD | CTRL_BACK | CTRL_LEFT | CTRL_RIGHT | CTRL_JUMP, false);
+	chara->controls_.Reset();
 
 	return chara;
 }

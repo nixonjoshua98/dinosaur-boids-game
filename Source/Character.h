@@ -33,6 +33,8 @@ const int CTRL_LEFT = 4;
 const int CTRL_RIGHT = 8;
 const int CTRL_JUMP = 16;
 
+const int CTRL_SHOOT = 32;
+
 const float MOVE_FORCE = 1.1f;
 const float INAIR_MOVE_FORCE = 0.02f;
 const float BRAKE_FORCE = 0.2f;

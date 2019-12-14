@@ -3,7 +3,7 @@
 
 const int FLOOR_SIZE		= 4096;
 const int CELL_SIZE			= 16;
-const int MAX_NUM_BOIDS		= 50;
+const int MAX_NUM_BOIDS		= 1;
 const int NUM_BOID_THREADS	= 1;
 
 template<typename T>

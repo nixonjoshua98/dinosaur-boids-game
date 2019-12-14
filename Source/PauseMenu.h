@@ -17,5 +17,4 @@ public:
 
 	Button* connectBtn;
 	Button* disconnectBtn;
-	Button* startSvrBtn;
 };

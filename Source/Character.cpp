@@ -33,8 +33,6 @@
 
 #include <iostream>
 
-#include "PlayerMissile.h"
-
 #include "Character.h"
 
 Character::Character(Context* context) :
@@ -69,6 +67,9 @@ void Character::Start()
 
 void Character::FixedUpdate(float timeStep)
 {
+	if (context_ == nullptr)
+		return;
+
 	/// \todo Could cache the components for faster access instead of finding them each frame
 	RigidBody* body = GetComponent<RigidBody>();
 	AnimationController* animCtrl = node_->GetComponent<AnimationController>(true);

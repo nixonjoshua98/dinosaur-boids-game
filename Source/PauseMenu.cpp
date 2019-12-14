@@ -17,7 +17,6 @@ void PauseMenu::Create()
 
 	connectBtn		= CreateButton(window, "Connect");
 	disconnectBtn	= CreateButton(window, "Disconnect");
-	//startSvrBtn		= CreateButton(window, "Start Server");
 
 	quitBtn	= CreateButton(window, "Quit");
 
