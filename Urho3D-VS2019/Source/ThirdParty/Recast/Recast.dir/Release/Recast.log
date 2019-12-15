@@ -1,0 +1,12 @@
+﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/Recast/CMakeLists.txt
+  Recast.cpp
+  RecastAlloc.cpp
+  RecastArea.cpp
+  RecastContour.cpp
+  RecastFilter.cpp
+  RecastLayers.cpp
+  RecastMesh.cpp
+  RecastMeshDetail.cpp
+  RecastRasterization.cpp
+  RecastRegion.cpp
+  Recast.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\Recast\Release\Recast.lib

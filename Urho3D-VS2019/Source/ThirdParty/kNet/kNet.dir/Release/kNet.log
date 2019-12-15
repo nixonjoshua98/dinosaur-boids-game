@@ -1,0 +1,78 @@
+﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/kNet/CMakeLists.txt
+  64BitAllocDebugger.cpp
+  Clock.cpp
+  DataDeserializer.cpp
+  DataSerializer.cpp
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\DataSerializer.cpp(424): warning C4267: 'argument': conversion from 'size_t' to 'u32', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\DataSerializer.cpp(426): warning C4267: 'argument': conversion from 'size_t' to 'u32', possible loss of data
+  FragmentedTransferManager.cpp
+  MessageConnection.cpp
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\MessageConnection.cpp(352): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\MessageConnection.cpp(598): warning C4267: '=': conversion from 'size_t' to 'unsigned long', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\MessageConnection.cpp(871): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\MessageConnection.cpp(871): warning C4267: 'initializing': conversion from 'size_t' to 'const int', possible loss of data
+  MessageListParser.cpp
+  Network.cpp
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\Network.cpp(131): warning C4996: 'gethostbyname': Use getaddrinfo() or GetAddrInfoW() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winsock2.h(2219): note: see declaration of 'gethostbyname'
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\Network.cpp(654): warning C4996: 'WSASocketA': Use WSASocketW() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winsock2.h(3416): note: see declaration of 'WSASocketA'
+  NetworkLogging.cpp
+  NetworkMessage.cpp
+  NetworkServer.cpp
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\NetworkServer.cpp(279): warning C4267: 'argument': conversion from 'size_t' to 'const _Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\NetworkServer.cpp(564): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  NetworkSimulator.cpp
+  NetworkWorkerThread.cpp
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\NetworkWorkerThread.cpp(130): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\NetworkWorkerThread.cpp(135): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\NetworkWorkerThread.cpp(307): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\NetworkWorkerThread.cpp(189): warning C4101: 'e': unreferenced local variable
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\NetworkWorkerThread.cpp(298): warning C4101: 'e': unreferenced local variable
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\NetworkWorkerThread.cpp(317): warning C4101: 'e': unreferenced local variable
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\NetworkWorkerThread.cpp(345): warning C4101: 'e': unreferenced local variable
+  SerializationStructCompiler.cpp
+  SerializedDataIterator.cpp
+  Socket.cpp
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\Socket.cpp(377): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\Socket.cpp(397): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\Socket.cpp(727): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\Socket.cpp(729): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  TCPMessageConnection.cpp
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\TCPMessageConnection.cpp(132): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\TCPMessageConnection.cpp(211): warning C4267: 'argument': conversion from 'size_t' to 'u32', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\TCPMessageConnection.cpp(216): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\TCPMessageConnection.cpp(230): warning C4267: 'argument': conversion from 'size_t' to 'u32', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\TCPMessageConnection.cpp(233): warning C4267: 'argument': conversion from 'size_t' to 'u32', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\TCPMessageConnection.cpp(249): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\TCPMessageConnection.cpp(268): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\TCPMessageConnection.cpp(354): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\TCPMessageConnection.cpp(355): warning C4101: 'e': unreferenced local variable
+  Thread.cpp
+  UDPMessageConnection.cpp
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(109): warning C4267: '=': conversion from 'size_t' to 'unsigned long', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(243): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(274): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(365): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(518): warning C4267: 'argument': conversion from 'size_t' to 'u32', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(532): warning C4267: 'argument': conversion from 'size_t' to 'u32', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(537): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(590): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(922): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(1034): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(1037): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(1041): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(1042): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(1153): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(1227): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\UDPMessageConnection.cpp(1234): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  W32Event.cpp
+  W32EventArray.cpp
+  W32Thread.cpp
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\win32\W32Thread.cpp(150): warning C4101: 'e': unreferenced local variable
+C:\Urho3D\Urho3D\Source\ThirdParty\kNet\src\win32\W32Thread.cpp(153): warning C4101: 'e': unreferenced local variable
+  kNet.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\kNet\Release\kNet.lib

@@ -81,7 +81,7 @@ void DinosaurGame::Start()
 
 	SetupAndShowMainMenu();
 
-	//AddConsole();
+	AddConsole();
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
 
@@ -251,6 +251,8 @@ void DinosaurGame::StartGame_Client()
 	ConnectToServer(address.Empty() ? "localhost" : address);
 
 	SubscribeToEvent(chatWindow->sendBtn, E_RELEASED, URHO3D_HANDLER(DinosaurGame, _SendMessage_Client));
+
+	chatWindow->Clear();
 }
 
 void DinosaurGame::StartGame_Server()
@@ -268,6 +270,8 @@ void DinosaurGame::StartGame_Server()
 	boids->Initialise(GetSubsystem<ResourceCache>(), scene_);
 
 	SubscribeToEvent(chatWindow->sendBtn, E_RELEASED, URHO3D_HANDLER(DinosaurGame, _SendMessage_Server));
+
+	chatWindow->Clear();
 
 	SubscribeToGameEvents_Server();
 }
@@ -1135,7 +1139,7 @@ void DinosaurGame::CreateCamera()
 	Camera* camera = cameraNode_->CreateComponent<Camera>(LOCAL);
 
 	cameraNode_->SetPosition(Vector3(0.0f, 5.0f, 0.0f));
-	camera->SetFarClip(300.0f);
+	camera->SetFarClip(500.0f);
 
 	GetSubsystem<Renderer>()->SetViewport(0, new Viewport(context_, scene_, camera));
 }
@@ -1217,9 +1221,9 @@ void DinosaurGame::CreateMushroom()
 
 	Node* node = scene_->CreateChild("Mushroom", REPLICATED);
 
-	StaticModel* object	 = node->CreateComponent<StaticModel>(REPLICATED);
-	RigidBody* body			 = node->CreateComponent<RigidBody>(REPLICATED);
-	CollisionShape* shape = node->CreateComponent<CollisionShape>(REPLICATED);
+	StaticModel* object		= node->CreateComponent<StaticModel>(REPLICATED);
+	RigidBody* body			= node->CreateComponent<RigidBody>(REPLICATED);
+	CollisionShape* shape	= node->CreateComponent<CollisionShape>(REPLICATED);
 
 	node->SetPosition({ 5.0f, 0.0f, 5.0f });
 	node->SetRotation({ 0, 0, 0 });

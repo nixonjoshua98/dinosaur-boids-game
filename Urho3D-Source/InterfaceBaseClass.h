@@ -10,6 +10,7 @@
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/CheckBox.h>
 #include <Urho3D/UI/ListView.h>
+#include <Urho3D/UI/ToolTip.h>
 
 #include <Urho3D/Resource/ResourceCache.h>
 

@@ -30,7 +30,7 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 	staticModel	= node->CreateComponent<StaticModel>();
 	rigidBody	= node->CreateComponent<RigidBody>();
 
-	staticModel->SetModel(cache->GetResource<Model>("Models/Cone.mdl"));
+	staticModel->SetModel(cache->GetResource<Model>("Models/Dinosaur.mdl"));
 	staticModel->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
 
 	node->SetScale(1.0f);

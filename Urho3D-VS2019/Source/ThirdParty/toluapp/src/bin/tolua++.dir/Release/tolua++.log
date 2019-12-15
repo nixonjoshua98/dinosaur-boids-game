@@ -1,0 +1,5 @@
+﻿  Generating toluabind.c and toluabind.h
+  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/toluapp/src/bin/CMakeLists.txt
+  tolua.c
+  toluabind.c
+  tolua++.vcxproj -> C:\Urho3D\Urho3D-VS2019\bin\tool\tolua++.exe

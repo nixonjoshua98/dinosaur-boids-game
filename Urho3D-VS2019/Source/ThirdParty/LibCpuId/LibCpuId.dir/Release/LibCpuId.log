@@ -1,0 +1,17 @@
+﻿  Temporary workaround for MASM
+  Microsoft (R) Macro Assembler (x64) Version 14.20.27508.1
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+   Assembling: C:/Urho3D/Urho3D/Source/ThirdParty/LibCpuId/src/masm-x64.asm
+  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/LibCpuId/CMakeLists.txt
+  Assembling C:\Urho3D\Urho3D\Source\ThirdParty\LibCpuId\src\masm-x64.asm...
+  asm-bits.c
+  cpuid_main.c
+  libcpuid_util.c
+  rdtsc.c
+  recog_amd.c
+  recog_intel.c
+masm-x64.obj : warning LNK4006: exec_cpuid already defined in masm-x64.obj; second definition ignored
+masm-x64.obj : warning LNK4006: cpu_rdtsc already defined in masm-x64.obj; second definition ignored
+masm-x64.obj : warning LNK4006: busy_sse_loop already defined in masm-x64.obj; second definition ignored
+  LibCpuId.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\LibCpuId\Release\LibCpuId.lib

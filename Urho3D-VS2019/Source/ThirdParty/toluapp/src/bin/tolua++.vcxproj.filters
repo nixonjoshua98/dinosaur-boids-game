@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Urho3D\Urho3D\Source\ThirdParty\toluapp\src\bin\tolua.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\toluapp\src\bin\generated\toluabind.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Urho3D\Urho3D\Source\ThirdParty\toluapp\src\bin\toluabind.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Urho3D\Urho3D-VS2019\CMakeFiles\f6a06c2ca3bc093b1f2452523edd6b1e\toluabind.c.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Urho3D\Urho3D\Source\ThirdParty\toluapp\src\bin\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D622D884-E3D7-38C8-A67D-A34C7CC5BBB2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{5FA79A23-DD48-3FEF-9D04-4100D69BB864}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{27BD7108-7C2A-3784-857F-5824E68A9B67}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

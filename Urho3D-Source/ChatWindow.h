@@ -10,6 +10,8 @@ public:
 
 	void AddMessage(String);
 
+	void Clear();
+
 	Button* sendBtn;
 
 	LineEdit* msgBox;

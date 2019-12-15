@@ -1,0 +1,7 @@
+﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/toluapp/src/lib/CMakeLists.txt
+  tolua_event.c
+  tolua_is.c
+  tolua_map.c
+  tolua_push.c
+  tolua_to.c
+  toluapp.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\toluapp\src\lib\Release\toluapp.lib

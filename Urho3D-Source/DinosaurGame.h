@@ -29,7 +29,7 @@ private:
 	enum class NetworkRole { CLIENT, SERVER, OFFLINE };
 	enum class CameraMode { FREE, SHOULDER };
 
-	const float GAME_TIMER = 61.f;
+	const float GAME_TIMER = 31.f;
 
 	struct ClientUI {
 		bool isUpdated	= false;

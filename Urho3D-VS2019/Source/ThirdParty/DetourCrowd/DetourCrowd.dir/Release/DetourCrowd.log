@@ -1,0 +1,8 @@
+﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/DetourCrowd/CMakeLists.txt
+  DetourCrowd.cpp
+  DetourLocalBoundary.cpp
+  DetourObstacleAvoidance.cpp
+  DetourPathCorridor.cpp
+  DetourPathQueue.cpp
+  DetourProximityGrid.cpp
+  DetourCrowd.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\DetourCrowd\Release\DetourCrowd.lib

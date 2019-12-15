@@ -1,0 +1,5 @@
+﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/Samples/16_Chat/CMakeLists.txt
+  Chat.cpp
+C:\Urho3D\Urho3D\Source\Samples\16_Chat\Chat.cpp(113): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+     Creating library C:/Urho3D/Urho3D-VS2019/Source/Samples/16_Chat/Release/16_Chat.lib and object C:/Urho3D/Urho3D-VS2019/Source/Samples/16_Chat/Release/16_Chat.exp
+  16_Chat.vcxproj -> C:\Urho3D\Urho3D-VS2019\bin\16_Chat.exe

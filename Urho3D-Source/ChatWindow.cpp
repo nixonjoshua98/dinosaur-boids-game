@@ -1,5 +1,7 @@
 #include "ChatWindow.h"
 
+#include <iostream>
+
 ChatWindow::ChatWindow(UI* _ui, ResourceCache* _cache) : InterfaceBaseClass(_ui, _cache)
 {
 	Create();
@@ -16,6 +18,8 @@ void ChatWindow::Create()
 	sendBtn = CreateButton(window, "Send");
 
 	sendBtn->SetFixedHeight(24);
+	window->SetFixedWidth(312);
+	chatView->SetFixedWidth(312);
 
 	root->AddChild(window);
 
@@ -32,4 +36,9 @@ void ChatWindow::AddMessage(String str)
 	{
 		chatView->SetSelection(chatView->GetNumItems() - 1);
 	}
+}
+
+void ChatWindow::Clear()
+{
+	chatView->RemoveAllItems();
 }

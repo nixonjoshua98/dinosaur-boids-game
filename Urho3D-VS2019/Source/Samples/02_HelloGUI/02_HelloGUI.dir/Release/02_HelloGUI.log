@@ -1,0 +1,4 @@
+﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/Samples/02_HelloGUI/CMakeLists.txt
+  HelloGUI.cpp
+     Creating library C:/Urho3D/Urho3D-VS2019/Source/Samples/02_HelloGUI/Release/02_HelloGUI.lib and object C:/Urho3D/Urho3D-VS2019/Source/Samples/02_HelloGUI/Release/02_HelloGUI.exp
+  02_HelloGUI.vcxproj -> C:\Urho3D\Urho3D-VS2019\bin\02_HelloGUI.exe

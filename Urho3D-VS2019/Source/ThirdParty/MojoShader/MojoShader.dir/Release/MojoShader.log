@@ -1,0 +1,83 @@
+﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/MojoShader/CMakeLists.txt
+  mojoshader.c
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_internal.h(99): warning C4005: 'va_copy': macro redefinition (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader.c)
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.20.27508\include\stdarg.h(20): note: see previous definition of 'va_copy' (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader.c)
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader.c(8000): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader.c(8284): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader.c(8449): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader.c(8585): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader.c(8620): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader.c(8681): warning C4018: '<': signed/unsigned mismatch
+  mojoshader_assembler.c
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_internal.h(99): warning C4005: 'va_copy': macro redefinition (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_assembler.c)
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.20.27508\include\stdarg.h(20): note: see previous definition of 'va_copy' (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_assembler.c)
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_assembler.c(241): warning C4267: 'initializing': conversion from 'size_t' to 'uint32', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_assembler.c(241): warning C4267: 'initializing': conversion from 'size_t' to 'const uint32', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_assembler.c(286): warning C4267: '-=': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_assembler.c(283): warning C4996: 'strnicmp': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strnicmp. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\string.h(560): note: see declaration of 'strnicmp'
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_assembler.c(294): warning C4996: 'strnicmp': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strnicmp. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\string.h(560): note: see declaration of 'strnicmp'
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_assembler.c(915): warning C4267: '=': conversion from 'size_t' to 'uint32', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_assembler.c(925): warning C4267: '=': conversion from 'size_t' to 'uint32', possible loss of data
+  mojoshader_common.c
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_internal.h(99): warning C4005: 'va_copy': macro redefinition (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c)
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.20.27508\include\stdarg.h(20): note: see previous definition of 'va_copy' (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c)
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c(101): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c(279): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c(280): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c(333): warning C4267: 'argument': conversion from 'size_t' to 'const unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c(520): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c(683): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c(733): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c(809): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_common.c(847): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  mojoshader_compiler.c
+  mojoshader_effects.c
+  mojoshader_lexer.c
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_internal.h(99): warning C4005: 'va_copy': macro redefinition (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_lexer.c)
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.20.27508\include\stdarg.h(20): note: see previous definition of 'va_copy' (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_lexer.c)
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_internal.h(99): warning C4005: 'va_copy': macro redefinition (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c)
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.20.27508\include\stdarg.h(20): note: see previous definition of 'va_copy' (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c)
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(39): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(51): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(268): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(275): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(284): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(325): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(332): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(349): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(373): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(378): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(404): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(419): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(424): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(456): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(492): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(501): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(536): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(556): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_effects.c(603): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_internal.h(99): warning C4005: 'va_copy': macro redefinition (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_compiler.c)
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.20.27508\include\stdarg.h(20): note: see previous definition of 'va_copy' (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_compiler.c)
+  mojoshader_preprocessor.c
+D:/dev/mojoshader/mojoshader_parser_hlsl.lemon(397): warning C4244: '=': conversion from 'int64' to 'int', possible loss of data (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_compiler.c)
+D:/dev/mojoshader/mojoshader_parser_hlsl.lemon(467): warning C4244: 'argument': conversion from 'int64' to 'const int', possible loss of data (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_compiler.c)
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_compiler.c(1996): warning C4244: '=': conversion from 'int64' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_compiler.c(3339): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_compiler.c(5536): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_compiler.c(5662): warning C4018: '<': signed/unsigned mismatch
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_internal.h(99): warning C4005: 'va_copy': macro redefinition (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c)
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.20.27508\include\stdarg.h(20): note: see previous definition of 'va_copy' (compiling source file C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c)
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(651): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(882): warning C4267: '-=': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(1244): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(1289): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(1313): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(1329): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(1411): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(1539): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(1856): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(1994): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Urho3D\Urho3D\Source\ThirdParty\MojoShader\mojoshader_preprocessor.c(2317): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  MojoShader.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\MojoShader\Release\MojoShader.lib

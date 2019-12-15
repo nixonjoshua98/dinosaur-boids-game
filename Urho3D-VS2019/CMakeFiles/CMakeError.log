@@ -1,0 +1,218 @@
+Determining if the function __sincosf exists failed with the following output:
+Change Dir: C:/Urho3D/Urho3D-VS2019/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe cmTC_acc7e.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=16.0 /v:m && Microsoft (R) Build Engine version 16.0.462+g62fb89029d for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.20.27508.1 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  cl /c /Zi /W3 /WX- /diagnostics:classic /MP /Od /Ob0 /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=__sincosf /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_acc7e.dir\Debug\\" /Fd"cmTC_acc7e.dir\Debug\vc142.pdb" /Gd /TC /errorReport:queue "D:\Program Files\CMake\share\cmake-3.15\Modules\CheckFunctionExists.c"
+  CheckFunctionExists.c
+  
+CheckFunctionExists.obj : error LNK2019: unresolved external symbol __sincosf referenced in function main [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_acc7e.vcxproj]
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\Debug\cmTC_acc7e.exe : fatal error LNK1120: 1 unresolved externals [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_acc7e.vcxproj]
+
+
+
+Determining if the function malloc_usable_size exists failed with the following output:
+Change Dir: C:/Urho3D/Urho3D-VS2019/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe cmTC_883ad.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=16.0 /v:m && Microsoft (R) Build Engine version 16.0.462+g62fb89029d for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.20.27508.1 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  cl /c /Zi /W3 /WX- /diagnostics:classic /MP /Od /Ob0 /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=malloc_usable_size /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_883ad.dir\Debug\\" /Fd"cmTC_883ad.dir\Debug\vc142.pdb" /Gd /TC /errorReport:queue "D:\Program Files\CMake\share\cmake-3.15\Modules\CheckFunctionExists.c"
+  CheckFunctionExists.c
+  
+CheckFunctionExists.obj : error LNK2019: unresolved external symbol malloc_usable_size referenced in function main [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_883ad.vcxproj]
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\Debug\cmTC_883ad.exe : fatal error LNK1120: 1 unresolved externals [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_883ad.vcxproj]
+
+
+
+Determining if the function sincosf exists in the m failed with the following output:
+Change Dir: C:/Urho3D/Urho3D-VS2019/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe cmTC_a1587.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=16.0 /v:m && Microsoft (R) Build Engine version 16.0.462+g62fb89029d for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.20.27508.1 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  cl /c /Zi /W3 /WX- /diagnostics:classic /MP /Od /Ob0 /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=sincosf /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_a1587.dir\Debug\\" /Fd"cmTC_a1587.dir\Debug\vc142.pdb" /Gd /TC /errorReport:queue "D:\Program Files\CMake\share\cmake-3.15\Modules\CheckFunctionExists.c"
+  CheckFunctionExists.c
+  
+LINK : fatal error LNK1104: cannot open file 'm.lib' [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_a1587.vcxproj]
+
+
+
+Performing C SOURCE FILE Test HAVE_XINPUT_GAMEPAD_EX failed with the following output:
+Change Dir: C:/Urho3D/Urho3D-VS2019/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe cmTC_c859a.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=16.0 /v:m && Microsoft (R) Build Engine version 16.0.462+g62fb89029d for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.20.27508.1 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  cl /c /Zi /W3 /WX- /diagnostics:classic /MP /Od /Ob0 /D WIN32 /D _WINDOWS /D HAVE_XINPUT_GAMEPAD_EX /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_c859a.dir\Debug\\" /Fd"cmTC_c859a.dir\Debug\vc142.pdb" /Gd /TC /errorReport:queue "C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.c"
+  src.c
+  
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winnt.h(154): fatal error C1189: #error:  "No Target Architecture" [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_c859a.vcxproj]
+
+
+Source file was:
+
+#include <xinput.h>
+
+int main()
+{
+  (void)sizeof(((XINPUT_GAMEPAD_EX *)0)->wButtons);
+  return 0;
+}
+
+Performing C SOURCE FILE Test HAVE_XINPUT_STATE_EX failed with the following output:
+Change Dir: C:/Urho3D/Urho3D-VS2019/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe cmTC_69634.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=16.0 /v:m && Microsoft (R) Build Engine version 16.0.462+g62fb89029d for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.20.27508.1 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  cl /c /Zi /W3 /WX- /diagnostics:classic /MP /Od /Ob0 /D WIN32 /D _WINDOWS /D HAVE_XINPUT_STATE_EX /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_69634.dir\Debug\\" /Fd"cmTC_69634.dir\Debug\vc142.pdb" /Gd /TC /errorReport:queue "C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.c"
+  src.c
+  
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winnt.h(154): fatal error C1189: #error:  "No Target Architecture" [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_69634.vcxproj]
+
+
+Source file was:
+
+#include <xinput.h>
+
+int main()
+{
+  (void)sizeof(((XINPUT_STATE_EX *)0)->dwPacketNumber);
+  return 0;
+}
+
+Checking whether the ASM_MASM compiler is GNU using "--version" did not match "(GNU assembler)|(GCC)|(Free Software Foundation)":
+Microsoft (R) Macro Assembler (x64) Version 14.20.27508.1
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+MASM : warning A4018:invalid command-line option : --version
+MASM : fatal error A1017:missing source filename
+Checking whether the ASM_MASM compiler is Clang using "--version" did not match "(clang version)":
+Microsoft (R) Macro Assembler (x64) Version 14.20.27508.1
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+MASM : warning A4018:invalid command-line option : --version
+MASM : fatal error A1017:missing source filename
+Checking whether the ASM_MASM compiler is AppleClang using "--version" did not match "(Apple LLVM version)":
+Microsoft (R) Macro Assembler (x64) Version 14.20.27508.1
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+MASM : warning A4018:invalid command-line option : --version
+MASM : fatal error A1017:missing source filename
+Checking whether the ASM_MASM compiler is ARMClang using "--version" did not match "armclang":
+Microsoft (R) Macro Assembler (x64) Version 14.20.27508.1
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+MASM : warning A4018:invalid command-line option : --version
+MASM : fatal error A1017:missing source filename
+Checking whether the ASM_MASM compiler is HP using "-V" did not match "HP C":
+Microsoft (R) Macro Assembler (x64) Version 14.20.27508.1
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+MASM : warning A4018:invalid command-line option : -V
+MASM : fatal error A1017:missing source filename
+Checking whether the ASM_MASM compiler is Intel using "--version" did not match "(ICC)":
+Microsoft (R) Macro Assembler (x64) Version 14.20.27508.1
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+MASM : warning A4018:invalid command-line option : --version
+MASM : fatal error A1017:missing source filename
+Checking whether the ASM_MASM compiler is SunPro using "-V" did not match "Sun C":
+Microsoft (R) Macro Assembler (x64) Version 14.20.27508.1
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+MASM : warning A4018:invalid command-line option : -V
+MASM : fatal error A1017:missing source filename
+Checking whether the ASM_MASM compiler is XL using "-qversion" did not match "XL C":
+Microsoft (R) Macro Assembler (x64) Version 14.20.27508.1
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+MASM : warning A4018:invalid command-line option : -qversion
+MASM : fatal error A1017:missing source filename
+Determining if the _TIMESPEC_DEFINED exist failed with the following output:
+Change Dir: C:/Urho3D/Urho3D-VS2019/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe cmTC_f9bd3.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=16.0 /v:m && Microsoft (R) Build Engine version 16.0.462+g62fb89029d for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.20.27508.1 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  cl /c /Zi /W3 /WX- /diagnostics:classic /MP /Od /Ob0 /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_f9bd3.dir\Debug\\" /Fd"cmTC_f9bd3.dir\Debug\vc142.pdb" /Gd /TC /errorReport:queue "C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\CheckSymbolExists.c"
+  CheckSymbolExists.c
+  
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\CheckSymbolExists.c(8): error C2065: '_TIMESPEC_DEFINED': undeclared identifier [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_f9bd3.vcxproj]
+
+
+File C:/Urho3D/Urho3D-VS2019/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <time.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef _TIMESPEC_DEFINED
+  return ((int*)(&_TIMESPEC_DEFINED))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Performing C SOURCE FILE Test IK_RESTRICT_restrict failed with the following output:
+Change Dir: C:/Urho3D/Urho3D-VS2019/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe cmTC_b4774.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=16.0 /v:m && Microsoft (R) Build Engine version 16.0.462+g62fb89029d for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.20.27508.1 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  cl /c /Zi /W3 /WX- /diagnostics:classic /MP /Od /Ob0 /D WIN32 /D _WINDOWS /D IK_RESTRICT_restrict /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_b4774.dir\Debug\\" /Fd"cmTC_b4774.dir\Debug\vc142.pdb" /Gd /TC /errorReport:queue "C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.c"
+  src.c
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.c(1): error C2146: syntax error: missing ')' before identifier 'x' [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_b4774.vcxproj]
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.c(1): error C2061: syntax error: identifier 'x' [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_b4774.vcxproj]
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.c(1): error C2059: syntax error: ';' [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_b4774.vcxproj]
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.c(1): error C2059: syntax error: ')' [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_b4774.vcxproj]
+  
+
+
+Source file was:
+int test (void *restrict x); int main (void) {return 0;}
+Performing C++ SOURCE FILE Test COMPILER_HAS_DEPRECATED_ATTR failed with the following output:
+Change Dir: C:/Urho3D/Urho3D-VS2019/CMakeFiles/CMakeTmp
+
+Run Build Command(s):C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/MSBuild/Current/Bin/MSBuild.exe cmTC_705c6.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=16.0 /v:m && Microsoft (R) Build Engine version 16.0.462+g62fb89029d for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  Microsoft (R) C/C++ Optimizing Compiler Version 19.20.27508.1 for x64
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+  cl /c /Zi /W3 /WX- /diagnostics:classic /MP /Od /Ob0 /D WIN32 /D _WINDOWS /D COMPILER_HAS_DEPRECATED_ATTR /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_705c6.dir\Debug\\" /Fd"cmTC_705c6.dir\Debug\vc142.pdb" /Gd /TP /errorReport:queue "C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.cxx"
+  src.cxx
+  
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.cxx(1): error C2065: '__deprecated__': undeclared identifier [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_705c6.vcxproj]
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.cxx(1): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_705c6.vcxproj]
+C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\src.cxx(1): error C2448: '__attribute__': function-style initializer appears to be a function definition [C:\Urho3D\Urho3D-VS2019\CMakeFiles\CMakeTmp\cmTC_705c6.vcxproj]
+
+
+Source file was:
+__attribute__((__deprecated__)) int somefunc() { return 0; }
+    int main() { return somefunc();}
