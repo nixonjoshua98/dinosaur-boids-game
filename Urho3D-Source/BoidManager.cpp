@@ -12,11 +12,7 @@ BoidManager::BoidManager()
 
 BoidManager::~BoidManager()
 {
-	std::cout << "a,";
-
 	Stop();
-
-	std::cout << "b,";
 
 	if (isUpdatingBoids)
 	{
@@ -26,16 +22,11 @@ BoidManager::~BoidManager()
 				t.join();
 		}
 
-		std::cout << "c,";
-
 		for (int i = 0; i < numBoids; ++i)
 			delete boids[i];
 
-		std::cout << "d,";
-
 		delete[] boids;
 
-		std::cout << "e\n";
 	}
 }
 
@@ -125,8 +116,6 @@ void BoidManager::UpdateThread(int threadID)
 		if (frame != currentFrame)
 		{
 			frame = currentFrame;
-
-			std::cout << frame << std::endl;
 
 			auto indexes = GetUpdateIndexes(threadID);
 

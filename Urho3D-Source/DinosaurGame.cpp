@@ -44,6 +44,7 @@
 #include "TimerWindow.h"
 #include "GameoverWindow.h"
 #include "WeaponWindow.h"
+#include "ChatWindow.h"
 #include "ControlsWindow.h"
 
 #include "RealTimer.h"
@@ -57,6 +58,8 @@ URHO3D_DEFINE_APPLICATION_MAIN(DinosaurGame)
 static const StringHash E_CLIENTOBJECTAUTHORITY("ClientObjectAuthority");
 static const StringHash E_UPDATEINTERFACE("UpdateInterface");
 static const StringHash E_CLIENTCHANGEWEAPON("Change Weapon");
+static const StringHash E_GAMEOVER("Game Over");
+static const StringHash E_CLIENTSENDMESSAGE("New Message");
 
 DinosaurGame::DinosaurGame(Context* context) :
     Sample(context),
@@ -101,8 +104,13 @@ void DinosaurGame::SubscribeToNetworkEvents_Client()
 
 	SubscribeToEvent(E_SERVERDISCONNECTED, URHO3D_HANDLER(DinosaurGame, HandleServerDisconnect_Client));
 
+	SubscribeToEvent(E_GAMEOVER,			URHO3D_HANDLER(DinosaurGame, OnGameEnd_Client));
+	SubscribeToEvent(E_CLIENTSENDMESSAGE,	URHO3D_HANDLER(DinosaurGame, HandleIncomingMessage_Client));
+
 	n->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);
 	n->RegisterRemoteEvent(E_UPDATEINTERFACE);
+	n->RegisterRemoteEvent(E_CLIENTSENDMESSAGE);
+	n->RegisterRemoteEvent(E_GAMEOVER);
 }
 
 void DinosaurGame::UpdateControls(Controls& controls)
@@ -160,7 +168,12 @@ void DinosaurGame::HandleUpdate_Server(StringHash, VariantMap& eventData)
 
 	boids->Update(delta);
 
-	gameTimer -= delta;
+	if (gameTimer <= 0.0f)
+	{
+		OnGameEnd_Server();
+	}
+	else
+		gameTimer -= delta;
 }
 
 void DinosaurGame::HandleUpdate_Offline(StringHash, VariantMap& eventData)
@@ -236,6 +249,8 @@ void DinosaurGame::StartGame_Client()
 	String address = mainMenu->ipAddress->GetText().Trimmed();
 
 	ConnectToServer(address.Empty() ? "localhost" : address);
+
+	SubscribeToEvent(chatWindow->sendBtn, E_RELEASED, URHO3D_HANDLER(DinosaurGame, _SendMessage_Client));
 }
 
 void DinosaurGame::StartGame_Server()
@@ -251,6 +266,8 @@ void DinosaurGame::StartGame_Server()
 	StartServer();
 
 	boids->Initialise(GetSubsystem<ResourceCache>(), scene_);
+
+	SubscribeToEvent(chatWindow->sendBtn, E_RELEASED, URHO3D_HANDLER(DinosaurGame, _SendMessage_Server));
 
 	SubscribeToGameEvents_Server();
 }
@@ -352,6 +369,8 @@ void DinosaurGame::SubscribeToGameEvents_Server()
 
 	SubscribeToEvent(E_CLIENTCHANGEWEAPON, URHO3D_HANDLER(DinosaurGame, HandleClientWeaponChange_Server));
 
+	SubscribeToEvent(E_CLIENTSENDMESSAGE, URHO3D_HANDLER(DinosaurGame, HandleIncomingMessage_Server));
+
 	SubscribeToEvent(E_MOUSEBUTTONDOWN, URHO3D_HANDLER(DinosaurGame, HandleMouseDown_Server_Offline));
 	SubscribeToEvent(E_UPDATE,			URHO3D_HANDLER(DinosaurGame, HandleUpdate_Server));
 	SubscribeToEvent(E_PHYSICSPRESTEP,	URHO3D_HANDLER(DinosaurGame, HandlePhysicsPreStep_Server));
@@ -360,23 +379,103 @@ void DinosaurGame::SubscribeToGameEvents_Server()
 
 	n->RegisterRemoteEvent(E_CLIENTOBJECTAUTHORITY);
 	n->RegisterRemoteEvent(E_UPDATEINTERFACE);
+	n->RegisterRemoteEvent(E_CLIENTSENDMESSAGE);
+	n->RegisterRemoteEvent(E_GAMEOVER);
 	n->RegisterRemoteEvent(E_CLIENTCHANGEWEAPON);
 }
 
 void DinosaurGame::UpdateControls_Client()
 {
-	UpdateControls(player.GetControls());
+	if (!pauseMenu->IsShown())
+	{
+		UpdateControls(player.GetControls());
+	}
+	else
+	{
+		Controls& controls = player.GetControls();
+
+		controls.Set(CTRL_FORWARD | CTRL_BACK | CTRL_BACK | CTRL_LEFT | CTRL_RIGHT | CTRL_JUMP | CTRL_SHOOT, false);
+	}
 }
 
 void DinosaurGame::UpdateControls_Server_Offline()
 {
-	Character* c = player.GetCharacter();
+	if (!pauseMenu->IsShown())
+	{
+		Character* c = player.GetCharacter();
 
-	Controls& controls = player.GetControls();
+		Controls& controls = player.GetControls();
 
-	UpdateControls(controls);
+		UpdateControls(controls);
 
-	c->GetNode()->SetRotation(Quaternion(c->controls_.yaw_, Vector3::UP));
+		c->GetNode()->SetRotation(Quaternion(c->controls_.yaw_, Vector3::UP));
+	}
+}
+
+void DinosaurGame::_SendMessage_Client(StringHash, VariantMap&)
+{
+	String txt = chatWindow->msgBox->GetText().Trimmed();
+
+	if (txt.Length() > 0)
+	{
+		Network* n = GetSubsystem<Network>();
+
+		Connection* server = n->GetServerConnection();
+
+		VariantMap remoteData;
+
+		remoteData["msg"] = txt;
+
+		chatWindow->msgBox->SetText("");
+
+		chatWindow->AddMessage("Me: " + txt);
+
+		server->SendRemoteEvent(E_CLIENTSENDMESSAGE, true, remoteData);
+	}
+}
+
+void DinosaurGame::_SendMessage_Server(StringHash, VariantMap&)
+{
+	String txt = chatWindow->msgBox->GetText().Trimmed();
+
+	if (txt.Length() > 0)
+	{
+		Network* n = GetSubsystem<Network>();
+
+		VariantMap remoteData;
+
+		remoteData["msg"] = txt;
+
+		chatWindow->msgBox->SetText("");
+
+		chatWindow->AddMessage("Me: " + txt);
+
+		n->BroadcastRemoteEvent(E_CLIENTSENDMESSAGE, true, remoteData);
+	}
+}
+
+void DinosaurGame::HandleIncomingMessage_Server(StringHash, VariantMap& eventData)
+{
+	chatWindow->AddMessage(eventData["msg"].GetString());
+
+	Connection* con = static_cast<Connection*>(eventData[RemoteEventData::P_CONNECTION].GetPtr());
+
+	VariantMap remoteData;
+
+	remoteData["msg"] = eventData["msg"];
+
+	for (Connection* k : clients.Keys())
+	{
+		if (k != con)
+		{
+			k->SendRemoteEvent(E_CLIENTSENDMESSAGE, true, remoteData);
+		}
+	}
+}
+
+void DinosaurGame::HandleIncomingMessage_Client(StringHash, VariantMap& eventData)
+{
+	chatWindow->AddMessage(eventData["msg"].GetString());
 }
 
 void DinosaurGame::OnGameEnd_Offline()
@@ -390,6 +489,65 @@ void DinosaurGame::OnGameEnd_Offline()
 	boids->Stop();
 
 	player.DestroyProjectiles();
+
+	if (pauseMenu->IsShown())
+		ToggleGamePause();
+
+	gameoverWindow->Show();
+
+	SubscribeToEvent(gameoverWindow->menuBtn, E_RELEASED, URHO3D_HANDLER(DinosaurGame, GoToMainMenuFromGame));
+
+	GetSubsystem<UI>()->GetCursor()->SetVisible(true);
+
+	GetSubsystem<Input>()->SetMouseMode(MM_ABSOLUTE);
+}
+
+void DinosaurGame::OnGameEnd_Server()
+{
+	UnsubscribeToGameEvents();
+
+	Character* c = player.GetCharacter();
+
+	c->controls_ = Controls();
+
+	boids->Stop();
+
+	player.DestroyProjectiles();
+
+	if (pauseMenu->IsShown())
+		ToggleGamePause();
+
+	gameoverWindow->Show();
+
+	SubscribeToEvent(gameoverWindow->menuBtn, E_RELEASED, URHO3D_HANDLER(DinosaurGame, GoToMainMenuFromGame));
+
+	GetSubsystem<UI>()->GetCursor()->SetVisible(true);
+
+	GetSubsystem<Input>()->SetMouseMode(MM_ABSOLUTE);
+
+	Network* network = GetSubsystem<Network>();
+
+	const Vector< SharedPtr<Connection> >& connections = network->GetClientConnections();
+
+	VariantMap remoteData;
+
+	for (unsigned i = 0; i < connections.Size(); ++i)
+	{
+		Connection* con = connections[i];
+
+		c = clients[con].GetCharacter();
+
+		c->controls_ = Controls();
+
+		clients[con].DestroyProjectiles();
+
+		con->SendRemoteEvent(E_GAMEOVER, true, remoteData);
+	}
+}
+
+void DinosaurGame::OnGameEnd_Client(StringHash, VariantMap& eventData)
+{
+	UnsubscribeToGameEvents();
 
 	if (pauseMenu->IsShown())
 		ToggleGamePause();
@@ -487,7 +645,11 @@ void DinosaurGame::HandleMouseDown_Server_Offline(StringHash, VariantMap& eventD
 	switch (key)
 	{
 	case MOUSEB_LEFT:
-		player.Shoot(player.GetCharacterPosition(), cameraNode_->GetDirection());
+		if (!pauseMenu->IsShown())
+		{
+			player.Shoot(player.GetCharacterPosition(), cameraNode_->GetDirection());
+		}
+
 		break;
 	}
 }
@@ -533,9 +695,11 @@ void DinosaurGame::InitialiseInterface()
 	weaponWindow	= std::make_unique<WeaponWindow>(ui, cache);
 	timeWindow		= std::make_unique<TimerWindow>(ui, cache);
 	gameoverWindow	= std::make_unique<GameoverWindow>(ui, cache);
+	chatWindow		= std::make_unique<ChatWindow>(ui, cache);
 
 	scoreWindow->Hide();
 	pauseMenu->Hide();
+	chatWindow->Hide();
 	debugWindow->Hide();
 	gameoverWindow->Hide();
 	weaponWindow->Hide();
@@ -761,7 +925,8 @@ void DinosaurGame::HandleKeyUp_Server_Offline(StringHash a, VariantMap& eventDat
 	switch (key)
 	{
 	case KEY_F:
-		player.ToggleWeapon();
+		if (!pauseMenu->IsShown())
+			player.ToggleWeapon();
 		break;
 	}
 }
@@ -775,17 +940,16 @@ void DinosaurGame::HandleKeyUp_Client(StringHash a, VariantMap& eventData)
 	switch (key)
 	{
 	case KEY_F:
-		std::cout << "F\n";
+		if (!pauseMenu->IsShown())
+		{
+			Network* n = GetSubsystem<Network>();
 
-		Network* n = GetSubsystem<Network>();
+			Connection* server = n->GetServerConnection();
 
-		Connection* server = n->GetServerConnection();
+			VariantMap remoteData;
 
-		VariantMap remoteData;
-
-		remoteData["TEST"] = 0;
-
-		server->SendRemoteEvent(E_CLIENTCHANGEWEAPON, true, remoteData);
+			server->SendRemoteEvent(E_CLIENTCHANGEWEAPON, true, remoteData);
+		}
 
 		break;
 	}
@@ -895,6 +1059,9 @@ void DinosaurGame::ToggleGamePause()
 	debugWindow->Toggle();
 	scoreWindow->Toggle();
 	controlsWindow->Toggle();
+
+	if (!(networkRole == NetworkRole::OFFLINE))
+		chatWindow->Toggle();
 
 	GetSubsystem<UI>()->GetCursor()->SetVisible(pauseMenu->IsShown());
 

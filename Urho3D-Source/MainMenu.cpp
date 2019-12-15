@@ -16,7 +16,7 @@ void MainMenu::Create()
 	ipAddress		= CreateLineEdit(window, "localhost");
 	hostOnlineBtn	= CreateButton(window, "Host Online Game");
 	joinOnlineBtn	= CreateButton(window, "Join Online Game");
-	quitBtn			= CreateButton(window, "Quit");
+	quitBtn			= CreateButton(window, "Quit to Desktop");
 
 	root->AddChild(window);
 

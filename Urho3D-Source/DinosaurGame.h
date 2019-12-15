@@ -29,7 +29,7 @@ private:
 	enum class NetworkRole { CLIENT, SERVER, OFFLINE };
 	enum class CameraMode { FREE, SHOULDER };
 
-	const float GAME_TIMER = 31.f;
+	const float GAME_TIMER = 61.f;
 
 	struct ClientUI {
 		bool isUpdated	= false;
@@ -41,7 +41,6 @@ private:
 
 	bool firstPerson_;
 
-	// - - - - - - - - - - - - -
 	std::unique_ptr<BoidManager> boids;
 	HashMap<Connection*, Player> clients;
 
@@ -57,7 +56,6 @@ private:
 
 	float gameTimer = GAME_TIMER;
 
-	// - - -
 	void SubscribeToGameEvents();
 	void SubscribeToNetworkEvents_Client();
 	void SubscribeToGameEvents_Client();
@@ -68,7 +66,15 @@ private:
 	void UpdateControls_Client();
 	void UpdateControls_Server_Offline();
 
+	void _SendMessage_Client(StringHash, VariantMap&);
+	void _SendMessage_Server(StringHash, VariantMap&);
+
+	void HandleIncomingMessage_Server(StringHash, VariantMap&);
+	void HandleIncomingMessage_Client(StringHash, VariantMap&);
+
 	void OnGameEnd_Offline();
+	void OnGameEnd_Server();
+	void OnGameEnd_Client(StringHash, VariantMap&);
 
 	void UpdateClientInterface_Server();
 	void UpdateInterface_Server(float);
@@ -115,6 +121,7 @@ private:
 	std::unique_ptr<WeaponWindow> weaponWindow;
 	std::unique_ptr<TimerWindow> timeWindow;
 	std::unique_ptr<GameoverWindow> gameoverWindow;
+	std::unique_ptr<ChatWindow> chatWindow;
 
 	// Init
 	void InitialiseInterface();

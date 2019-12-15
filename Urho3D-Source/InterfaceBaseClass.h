@@ -9,6 +9,7 @@
 #include <Urho3D/UI/LineEdit.h>
 #include <Urho3D/UI/UIEvents.h>
 #include <Urho3D/UI/CheckBox.h>
+#include <Urho3D/UI/ListView.h>
 
 #include <Urho3D/Resource/ResourceCache.h>
 
@@ -44,6 +45,7 @@ protected:
 	Text* CreateText(UIElement*, String);
 	LineEdit* CreateLineEdit(UIElement*, String);
 
-private:
+	ListView* CreateListView(UIElement*, int);
+
 	Window* CreateWindow(String name, LayoutMode layout, IntVector2 pos, int width);
 };

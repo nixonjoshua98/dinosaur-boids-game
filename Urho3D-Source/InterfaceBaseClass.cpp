@@ -100,10 +100,26 @@ LineEdit* InterfaceBaseClass::CreateLineEdit(UIElement* parent, String txt)
 	lineEdit->SetMinHeight(24);
 	lineEdit->SetAlignment(HA_CENTER, VA_CENTER);
 	lineEdit->SetText(txt);
+
+	lineEdit->SetFixedHeight(24);
+
 	window->AddChild(lineEdit);
+
 	lineEdit->SetStyleAuto();
 
 	return lineEdit;
+}
+
+ListView* InterfaceBaseClass::CreateListView(UIElement* parent, int height)
+{
+	ListView* view = parent->CreateChild<ListView>();
+
+	view->SetFixedHeight(height);
+	view->SetAlignment(HA_CENTER, VA_CENTER);
+
+	view->SetStyleAuto();
+
+	return view;
 }
 
 Window* InterfaceBaseClass::CreateWindow(String name, LayoutMode layout, IntVector2 pos, int width)
