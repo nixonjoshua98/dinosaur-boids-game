@@ -69,7 +69,6 @@ public:
 private:
 	/// Handle physics collision event.
 	void HandleNodeCollision(StringHash eventType, VariantMap& eventData);
-	//void HandleCollisionStart(StringHash eventType, VariantMap& eventData);
 
 	/// Grounded flag for movement.
 	bool onGround_;

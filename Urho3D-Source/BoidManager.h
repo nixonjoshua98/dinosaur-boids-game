@@ -25,7 +25,7 @@ public:
 
 	void Initialise();
 	
-	void Initialise(ResourceCache*, Scene* scene);
+	void Initialise(ResourceCache*, Scene* scene, int boidsNum = MAX_ONLINE_NUM_BOIDS);
 
 	void Stop();
 
@@ -43,6 +43,8 @@ private:
 	Boid** boids;
 
 	bool isUpdatingBoids;
+
+	int MAX_BOIDS;
 
 	std::map< std::pair<int, int>, std::vector<Boid*> > boidNeighbourMap;
 

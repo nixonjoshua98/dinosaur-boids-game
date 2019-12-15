@@ -67,10 +67,10 @@ void Boid::Update(float tm)
 
 float Boid::ATTRACT_RANGE		= 20.0f;
 float Boid::ATTRACT_STRENGTH	= 8.0f;
-float Boid::ATTRACT_MAX_V		= 5.0f;
+float Boid::ATTRACT_MAX_V		= 7.0f;
 
-float Boid::REPEL_RANGE		= 14.0;
-float Boid::REPEL_STRENGTH	= 17.0f;
+float Boid::REPEL_RANGE		= 15.0;
+float Boid::REPEL_STRENGTH	= 12.0f;
 
 float Boid::ALLIGN_RANGE	= 8.0f;
 float Boid::ALIGN_STRENGTH	= 3.0f;
@@ -133,7 +133,7 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 
 	// Center Attraction
 	Vector3 desiredDirection = (Vector3::ZERO - GetPosition()).Normalized();
-	Vector3 desiredVelocity = desiredDirection * 6.0f;
+	Vector3 desiredVelocity = desiredDirection * 15.0f;
 
 	Vector3 centerAttractForce = (desiredVelocity - GetLinearVelocity());
 

@@ -12,9 +12,5 @@ public:
 
 	Button* continueBtn;
 	Button* quitBtn;
-
-	LineEdit* ipAddress;
-
-	Button* connectBtn;
 	Button* disconnectBtn;
 };

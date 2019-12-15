@@ -29,10 +29,14 @@ private:
 	enum class NetworkRole { CLIENT, SERVER, OFFLINE };
 	enum class CameraMode { FREE, SHOULDER };
 
+	const float GAME_TIMER = 31.f;
+
 	struct ClientUI {
 		bool isUpdated	= false;
 		int numBoids	= 0;
 		int score		= 0;
+		String weaponName;
+		int timeLeft;
 	};
 
 	bool firstPerson_;
@@ -49,29 +53,41 @@ private:
 
 	const unsigned int SERVER_PORT	= 2345;
 
-	float menuTimer	= 1.0f;
+	float menuTimer	= 0.5f;
+
+	float gameTimer = GAME_TIMER;
 
 	// - - -
 	void SubscribeToGameEvents();
 	void SubscribeToNetworkEvents_Client();
 	void SubscribeToGameEvents_Client();
+	void SubscribeToGameEvents_Offline();
 	void SubscribeToGameEvents_Server();
 
 	void UpdateControls(Controls&);
 	void UpdateControls_Client();
-	void UpdateControls_Server();
+	void UpdateControls_Server_Offline();
+
+	void OnGameEnd_Offline();
 
 	void UpdateClientInterface_Server();
 	void UpdateInterface_Server(float);
 	void UpdateInterface_Client(float);
+	void UpdateInterface_Offline(float);
 
 	void HandleUpdate_Client(StringHash, VariantMap&);
 	void HandleUpdate_Server(StringHash, VariantMap&);
+	void HandleUpdate_Offline(StringHash, VariantMap&);
+
+	void HandleClientWeaponChange_Server(StringHash, VariantMap&);
+
+	void HandleServerDisconnect_Client(StringHash, VariantMap&);
 
 	void HandlePhysicsPreStep_Client(StringHash, VariantMap&);
 	void HandlePhysicsPreStep_Server(StringHash, VariantMap&);
 
 	void SetupGame();
+	void StartGame_Offline();
 	void StartGame_Client();
 	void StartGame_Server();
 
@@ -80,11 +96,15 @@ private:
 
 	void HandleInterfaceUpdate_Client(StringHash, VariantMap&);
 
-	void HandleMouseDown_Server(StringHash, VariantMap&);
+	void HandleMouseDown_Server_Offline(StringHash, VariantMap&);
 
 	void HandlePostUpdate(StringHash, VariantMap&);
+
 	void HandleKeyUp(StringHash, VariantMap&);
-	// - - -
+	void HandleKeyUp_Server_Offline(StringHash, VariantMap&);
+	void HandleKeyUp_Client(StringHash, VariantMap&);
+
+	void DisconnectFromServer();
 
 	// UI
 	std::unique_ptr<PauseMenu> pauseMenu;
@@ -92,6 +112,9 @@ private:
 	std::unique_ptr<DebugWindow> debugWindow;
 	std::unique_ptr<ScoreWindow> scoreWindow;
 	std::unique_ptr<ControlsWindow> controlsWindow;
+	std::unique_ptr<WeaponWindow> weaponWindow;
+	std::unique_ptr<TimerWindow> timeWindow;
+	std::unique_ptr<GameoverWindow> gameoverWindow;
 
 	// Init
 	void InitialiseInterface();
@@ -120,9 +143,6 @@ private:
 	void UpdateFreeCamera(float);
 	void UpdateShoulderCamera(float);
 
-	//
-	void ShootMissile();
-
 	// Main Menu Callbacks
 	void MM_OfflinePlayBtnDown(StringHash, VariantMap&);
 	void MM_HostGameBtnDown(StringHash, VariantMap&);
@@ -130,8 +150,7 @@ private:
 	void MM_QuitGameBtnDown(StringHash, VariantMap&);
 
 	// Pause Menu Callbacks
-	void PM_DisconnectBtnDown(StringHash, VariantMap&);
-	void PM_JoinSvrBtnDown(StringHash, VariantMap&);
+	void GoToMainMenuFromGame(StringHash, VariantMap&);
 	void PM_ContinueBtnDown(StringHash, VariantMap&);
 	void PM_QuitBtnDown(StringHash, VariantMap&);
 

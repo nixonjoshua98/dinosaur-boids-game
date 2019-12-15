@@ -3,6 +3,7 @@
 #include "Character.h"
 
 #include "StraightProjectile.h"
+#include "ScatterGun.h"
 
 class Player
 {
@@ -14,8 +15,10 @@ private:
 
 	Controls controls;
 
-	// Projectiles
 	StraightProjectile* straightProjectile;
+	ScatterGun* scatterGun;
+
+	int weaponID = 0;
 
 public:
 	Player();
@@ -28,8 +31,13 @@ public:
 
 	std::vector<Vector3> GetProjectilePositions();
 
+	void ToggleWeapon();
+	void DestroyProjectiles();
+
 	int GetScore()				{ return GetCharacter()->score; }
 	bool AssignedCharacter()	{ return assignedCharacter; }
+
+	String GetWeaponName();
 
 	WeakPtr<Node> GetCharacterNode()	{ return characterNode; }
 	Vector3 GetCharacterPosition()		{ return GetCharacter()->GetPosition(); }

@@ -7,6 +7,8 @@ void StraightProjectile::Initialise(ResourceCache* _cache, Scene* _scene)
 	projectileLifetime	= 1.0f;
 	projectileSpeed		= 75.0f;
 
+	name = "Sphere Projectile";
+
 	numNodes = 1;
 
 	nodes = new Node * [numNodes];
@@ -17,7 +19,7 @@ void StraightProjectile::Initialise(ResourceCache* _cache, Scene* _scene)
 
 		StaticModel* staticModel = nodes[i]->CreateComponent<StaticModel>(REPLICATED);
 
-		RigidBody* rb = nodes[i]->CreateComponent<RigidBody>(REPLICATED);
+		RigidBody* rb = nodes[i]->CreateComponent<RigidBody>(LOCAL);
 
 		staticModel->SetModel(_cache->GetResource<Model>("Models/Sphere.mdl"));
 		staticModel->SetMaterial(_cache->GetResource<Material>("Materials/Stone.xml"));
@@ -44,7 +46,26 @@ void StraightProjectile::Update(float delta)
 		}
 		else
 		{
+			for (int i = 0; i < numNodes; i++)
+			{
+				RigidBody* rb = nodes[i]->GetComponent<RigidBody>();
 
+				Vector3 linearV = rb->GetLinearVelocity();
+				Vector3 pos = rb->GetPosition();
+
+				linearV.y_ = yShotAt;
+				pos.y_ = yShotAt;
+
+				rb->SetLinearVelocity(linearV);
+				rb->SetPosition(pos);
+			}
 		}
 	}
+}
+
+void StraightProjectile::Shoot(Vector3 origin, Vector3 dir)
+{
+	yShotAt = origin.y_ + 0.5f;
+
+	ProjectileBaseClass::Shoot(origin, dir);
 }

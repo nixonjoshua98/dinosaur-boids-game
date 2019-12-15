@@ -13,12 +13,9 @@ void PauseMenu::Create()
 	window		= CreateWindow("PauseWindow");
 	continueBtn	= CreateButton(window, "Continue");
 
-	ipAddress = CreateLineEdit(window, "localhost");
+	disconnectBtn	= CreateButton(window, "Main Menu");
 
-	connectBtn		= CreateButton(window, "Connect");
-	disconnectBtn	= CreateButton(window, "Disconnect");
-
-	quitBtn	= CreateButton(window, "Quit");
+	quitBtn	= CreateButton(window, "Quit to Desktop");
 
 	root->AddChild(window);
 

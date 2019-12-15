@@ -10,7 +10,7 @@ void ScoreWindow::Create()
 	if (isCreated) return;
 
 	window		= CreateWindow("ScoreWindow", { 400, -350 }, 100);
-	scoreText	= CreateText(window, "SCORE_TEXT");
+	scoreText	= CreateText(window, "Score: 0");
 
 	root->AddChild(window);
 

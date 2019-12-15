@@ -8,12 +8,15 @@
 
 BoidManager::BoidManager()
 {
-
 }
 
 BoidManager::~BoidManager()
 {
+	std::cout << "a,";
+
 	Stop();
+
+	std::cout << "b,";
 
 	if (isUpdatingBoids)
 	{
@@ -23,10 +26,16 @@ BoidManager::~BoidManager()
 				t.join();
 		}
 
-		for (int i = 0; i < numBoids; i++)
+		std::cout << "c,";
+
+		for (int i = 0; i < numBoids; ++i)
 			delete boids[i];
 
+		std::cout << "d,";
+
 		delete[] boids;
+
+		std::cout << "e\n";
 	}
 }
 
@@ -35,14 +44,16 @@ void BoidManager::Initialise()
 	isUpdatingBoids = false;
 }
 
-void BoidManager::Initialise(ResourceCache* _cache, Scene* _scene)
+void BoidManager::Initialise(ResourceCache* _cache, Scene* _scene, int boidsNum)
 {
 	isUpdatingBoids = true;
 
 	scene = _scene;
 	cache = _cache;
 
-	boids = new Boid * [MAX_NUM_BOIDS];
+	MAX_BOIDS = boidsNum;
+
+	boids = new Boid * [MAX_BOIDS];
 
 	// Create the base neighbour lookup table
 	for (float x = -FLOOR_SIZE / 2; x <= FLOOR_SIZE / 2; x += CELL_SIZE)
@@ -70,7 +81,7 @@ void BoidManager::Update(float delta)
 	{
 		deltaTime = delta;
 
-		SpawnBoid(Max(1, delta * 250));
+		SpawnBoid(Max(1, delta * 500));
 
 		UpdateNeighbourMap();
 
@@ -94,7 +105,7 @@ void BoidManager::SpawnBoid(int amount)
 {
 	for (int i = 0; i < amount; i++)
 	{
-		if (numBoids < MAX_NUM_BOIDS)
+		if (numBoids < MAX_BOIDS)
 		{
 			boids[numBoids] = new Boid();
 
@@ -115,17 +126,24 @@ void BoidManager::UpdateThread(int threadID)
 		{
 			frame = currentFrame;
 
+			std::cout << frame << std::endl;
+
 			auto indexes = GetUpdateIndexes(threadID);
 
 			for (int i = indexes.first; i < indexes.second; i++)
 			{
 				lock.lock();
 
-				std::vector<Boid*> neighbours = GetBoidsInNeighbouringCells(boids[i]->GetPosition());
+				std::vector<Boid*> neighbours(0);
+
+				if (isRunning && !(boids[i] == nullptr))
+				{
+					neighbours = GetBoidsInNeighbouringCells(boids[i]->GetPosition());
+				}
 
 				lock.unlock();
 
-				if (neighbours.size() <= 0)
+				if (neighbours.size() <= 1 || !isRunning)
 					continue;
 
 				boids[i]->ComputeForce(neighbours);
@@ -147,20 +165,24 @@ void BoidManager::UpdateNeighbourMap()
 	{
 		it->second.clear();
 
-		it++;
+		++it;
 	}
 
 	destroyedBoids = 0;
 
 	// Update
-	for (int i = 0; i < numBoids; i++)
+	for (int i = 0; i < numBoids; ++i)
 	{
-		std::pair<int, int> key = GetCellKey(boids[i]->GetPosition());
+		if (boids[i]->IsEnabled())
+		{
+			std::pair<int, int> key = GetCellKey(boids[i]->GetPosition());
 
-		boidNeighbourMap[key].push_back(boids[i]);
+			boidNeighbourMap[key].push_back(boids[i]);
 
-		if (!boids[i]->IsEnabled())
-			destroyedBoids++;
+			continue;
+		}
+
+		destroyedBoids++;
 	}
 
 	lock.unlock();

@@ -30,8 +30,12 @@ public:
 
 	std::vector<Vector3> GetPositions();
 
+	String GetName() { return name; };
+
 protected:
 	Node** nodes;
+
+	String name;
 
 	int numNodes;
 

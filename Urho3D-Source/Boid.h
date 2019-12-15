@@ -50,6 +50,5 @@ private:
 
 	Node* node;
 	RigidBody* rigidBody;
-	//CollisionShape* collisionShape;
 	StaticModel* staticModel;
 };
