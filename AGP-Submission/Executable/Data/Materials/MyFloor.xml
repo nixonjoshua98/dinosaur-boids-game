@@ -1,0 +1,5 @@
+<material>
+    <technique name="Techniques/TerrainBlend.xml" />
+    <texture unit="0" name="Textures/MyFloor.dds" />
+    <parameter name="DetailTiling" value="32 32" />
+</material>
