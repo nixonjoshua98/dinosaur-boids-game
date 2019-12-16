@@ -1,5 +1,0 @@
-﻿  Assembling C:\Urho3D\Urho3D\Source\ThirdParty\AngelScript\source\as_callfunc_x64_msvc_asm.asm...
-as_callfunc_x64_msvc_asm.obj : warning LNK4006: CallX64 already defined in as_callfunc_x64_msvc_asm.obj; second definition ignored
-as_callfunc_x64_msvc_asm.obj : warning LNK4006: GetReturnedFloat already defined in as_callfunc_x64_msvc_asm.obj; second definition ignored
-as_callfunc_x64_msvc_asm.obj : warning LNK4006: GetReturnedDouble already defined in as_callfunc_x64_msvc_asm.obj; second definition ignored
-  AngelScript.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\AngelScript\Release\AngelScript.lib

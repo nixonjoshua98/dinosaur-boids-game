@@ -1,8 +1,0 @@
-﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/Detour/CMakeLists.txt
-  DetourAlloc.cpp
-  DetourCommon.cpp
-  DetourNavMesh.cpp
-  DetourNavMeshBuilder.cpp
-  DetourNavMeshQuery.cpp
-  DetourNode.cpp
-  Detour.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\Detour\Release\Detour.lib

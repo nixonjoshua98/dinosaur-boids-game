@@ -11,6 +11,9 @@
 #include <Urho3D/Graphics/Material.h>
 #include <Urho3D/Graphics/StaticModel.h>
 
+#include <Urho3D/Graphics/ParticleEffect.h>
+#include <Urho3D/Graphics/ParticleEmitter.h>
+
 #include <iostream>
 
 #include "Boid.h"
@@ -43,7 +46,21 @@ void Boid::CreateComponents(ResourceCache* cache, Scene* scene)
 
 void Boid::Update(float tm)
 {
-	if (!node->IsEnabled()) return;
+	if (!node->IsEnabled())
+		return;
+
+	// Death animation
+	if (isDestroyed && node->IsEnabled())
+	{
+		Vector3 v = Vector3({ 0.0f, 5.0f, 0.0f });
+
+		if (node != nullptr && node->IsEnabled())
+		{
+			rigidBody->SetLinearVelocity(v);
+		}
+
+		return;
+	}
 
 	force.y_ = 0.0f;
 
@@ -62,7 +79,14 @@ void Boid::Update(float tm)
 	Vector3 cp	= -vn.CrossProduct(Vector3(0.0f, 1.0f, 0.0f));
 	float dp	= cp.DotProduct(vn);
 
-	rigidBody->SetRotation(Quaternion(Acos(dp), cp));
+	Quaternion rot = Quaternion(Acos(dp), cp);
+
+	rot.y_ = rot.x_ + 0.25f;
+
+	rot.x_ = 0.0f;
+	rot.z_ = 0.0f;
+
+	rigidBody->SetRotation(rot);
 }
 
 float Boid::ATTRACT_RANGE		= 20.0f;
@@ -77,7 +101,8 @@ float Boid::ALIGN_STRENGTH	= 3.0f;
 
 void Boid::ComputeForce(std::vector<Boid*> boids)
 {
-	if (!node->IsEnabled()) return;
+	if (isDestroyed)
+		return;
 
 	Vector3 CoM;				// Centre of mass, accumulated total
 
@@ -133,9 +158,9 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 
 	// Center Attraction
 	Vector3 desiredDirection = (Vector3::ZERO - GetPosition()).Normalized();
-	Vector3 desiredVelocity = desiredDirection * 15.0f;
+	Vector3 desiredVelocity = desiredDirection * 5.0f;
 
-	Vector3 centerAttractForce = (desiredVelocity - GetLinearVelocity());
+	Vector3 centerAttractForce = (desiredVelocity - GetLinearVelocity()) * 4.0f;
 
 	force += centerAttractForce;
 
@@ -158,12 +183,20 @@ void Boid::ComputeForce(std::vector<Boid*> boids)
 
 bool Boid::IsEnabled()
 {
-	return node->IsEnabled();
+	return !isDestroyed;
+}
+
+void Boid::DestroyIfNeeded()
+{
+	if (isDestroyed && GetPosition().y_ >= 100.0f)
+	{
+		node->SetEnabled(false);
+	}
 }
 
 void Boid::Destroy()
 {
-	node->SetEnabled(false);
+	isDestroyed = true;
 }
 
 Vector3 Boid::GetPosition()

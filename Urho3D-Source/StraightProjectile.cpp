@@ -1,71 +1,71 @@
 #include "StraightProjectile.h"
 
-#include <iostream>
-
 void StraightProjectile::Initialise(ResourceCache* _cache, Scene* _scene)
 {
-	projectileLifetime	= 1.0f;
-	projectileSpeed		= 75.0f;
+	projectiles = std::vector<Projectile>(NUM_PROJECTILES);
 
-	name = "Sphere Projectile";
-
-	numNodes = 1;
-
-	nodes = new Node * [numNodes];
-
-	for (int i = 0; i < numNodes; i++)
+	for (int i = 0; i < NUM_PROJECTILES; ++i)
 	{
-		nodes[i] = _scene->CreateChild("Projectile", REPLICATED);
-
-		StaticModel* staticModel = nodes[i]->CreateComponent<StaticModel>(REPLICATED);
-
-		RigidBody* rb = nodes[i]->CreateComponent<RigidBody>(LOCAL);
-
-		staticModel->SetModel(_cache->GetResource<Model>("Models/Sphere.mdl"));
-		staticModel->SetMaterial(_cache->GetResource<Material>("Materials/Stone.xml"));
-
-		nodes[i]->SetScale(0.5f);
-
-		rb->SetMass(1.0f);
-		rb->SetUseGravity(false);
-		rb->SetPosition({ 0.0f, 0.0f, 0.0f });
-
-		nodes[i]->SetEnabled(false);
+		projectiles[i].Initialise(_cache, _scene);
 	}
 }
 
 void StraightProjectile::Update(float delta)
 {
-	if (IsEnabled())
+	cooldown -= delta;
+
+	for (int i = 0; i < NUM_PROJECTILES; ++i)
 	{
-		remainingLifetime -= delta;
-
-		if (remainingLifetime <= 0.0f)
-		{
-			Disable();
-		}
-		else
-		{
-			for (int i = 0; i < numNodes; i++)
-			{
-				RigidBody* rb = nodes[i]->GetComponent<RigidBody>();
-
-				Vector3 linearV = rb->GetLinearVelocity();
-				Vector3 pos = rb->GetPosition();
-
-				linearV.y_ = yShotAt;
-				pos.y_ = yShotAt;
-
-				rb->SetLinearVelocity(linearV);
-				rb->SetPosition(pos);
-			}
-		}
+		projectiles[i].Update(delta);
 	}
 }
 
 void StraightProjectile::Shoot(Vector3 origin, Vector3 dir)
-{
-	yShotAt = origin.y_ + 0.5f;
+{	
+	if (cooldown > 0.0f)
+		return;
+	
+	for (int i = 0; i < NUM_PROJECTILES; ++i)
+	{
+		if (!projectiles[i].IsEnabled())
+		{
+			projectiles[i].Shoot(origin, dir);
 
-	ProjectileBaseClass::Shoot(origin, dir);
+			cooldown = 0.15f;
+
+			break;
+		}
+	}
 }
+
+void StraightProjectile::Disable()
+{
+	for (int i = 0; i < NUM_PROJECTILES; ++i)
+	{
+		projectiles[i].Disable();
+	}
+}
+
+std::vector<Vector3> StraightProjectile::GetPositions()
+{
+	std::vector<Vector3> positions;
+
+	for (int i = 0; i < NUM_PROJECTILES; ++i)
+	{
+		auto temp = projectiles[i].GetPositions();
+
+		for (Vector3 v : temp)
+		{
+			positions.push_back(v);
+		}
+	}
+
+	return positions;
+}
+
+String StraightProjectile::GetName()
+{
+	return projectiles[0].GetName();
+}
+
+

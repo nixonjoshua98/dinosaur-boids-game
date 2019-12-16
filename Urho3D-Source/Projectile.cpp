@@ -1,13 +1,15 @@
-#include "ScatterGun.h"
+#include "Projectile.h"
 
-void ScatterGun::Initialise(ResourceCache* _cache, Scene* _scene)
+#include <iostream>
+
+void Projectile::Initialise(ResourceCache* _cache, Scene* _scene)
 {
-	projectileLifetime	= 1.0f;
-	projectileSpeed		= 50.0f;
+	projectileLifetime	= 1.f;
+	projectileSpeed		= 75.0f;
 
-	name = "Scatter Gun";
+	name = "Semi-Auto Sphere";
 
-	numNodes = 5;
+	numNodes = 1;
 
 	nodes = new Node * [numNodes];
 
@@ -32,7 +34,7 @@ void ScatterGun::Initialise(ResourceCache* _cache, Scene* _scene)
 	}
 }
 
-void ScatterGun::Update(float delta)
+void Projectile::Update(float delta)
 {
 	if (IsEnabled())
 	{
@@ -61,32 +63,9 @@ void ScatterGun::Update(float delta)
 	}
 }
 
-void ScatterGun::Shoot(Vector3 origin, Vector3 dir)
+void Projectile::Shoot(Vector3 origin, Vector3 dir)
 {
 	yShotAt = origin.y_ + 0.5f;
 
-	dir.z_ -= 0.2f;
-
-	if (readyToShoot)
-	{
-		origin += dir * 2.0f;
-
-		remainingLifetime = projectileLifetime;
-
-		for (int i = 0; i < numNodes; i++)
-		{
-			Node* n = nodes[i];
-
-			RigidBody* rb = n->GetComponent<RigidBody>();
-
-			rb->SetPosition(origin);
-			rb->SetLinearVelocity(dir.Normalized() * projectileSpeed);
-
-			dir.z_ += 0.2f;
-
-			n->SetEnabled(true);
-		}
-
-		readyToShoot = false;
-	}
+	ProjectileBaseClass::Shoot(origin, dir);
 }

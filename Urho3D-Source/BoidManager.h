@@ -31,6 +31,8 @@ public:
 
 	void Update(float);
 
+	void DestroyBoidsIfNeededed();
+
 	unsigned int GetNumBoids() { return numBoids; }	  
 	unsigned int GetNumEnabledBoids() { return numBoids - destroyedBoids; }
 

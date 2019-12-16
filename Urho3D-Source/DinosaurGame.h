@@ -47,6 +47,8 @@ private:
 	ClientUI clientUI;
 	Player player;
 
+	std::vector<Node*> borderNodes;
+
 	NetworkRole networkRole;
 	CameraMode cameraMode;
 
@@ -55,6 +57,8 @@ private:
 	float menuTimer	= 0.5f;
 
 	float gameTimer = GAME_TIMER;
+
+	void CreateGameBorder();
 
 	void SubscribeToGameEvents();
 	void SubscribeToNetworkEvents_Client();
@@ -111,6 +115,8 @@ private:
 	void HandleKeyUp_Client(StringHash, VariantMap&);
 
 	void DisconnectFromServer();
+
+	void CreateSkyBox();
 
 	// UI
 	std::unique_ptr<PauseMenu> pauseMenu;
@@ -180,7 +186,11 @@ private:
 	void CreateZone(CreateMode);
 	void CreateScene(CreateMode);
 	void CreateCamera();
-	void CreateMushroom();
+
+	Node* CreateMushroom();
+	Node* CreateBox();
+	Node* CreateCharacterModel();
+
 	void CreateLighting();
 	void CreateFloor();
 };

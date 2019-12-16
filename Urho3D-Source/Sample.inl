@@ -149,11 +149,9 @@ void Sample::CreateLogo()
 
 void Sample::SetWindowTitleAndIcon()
 {
-    ResourceCache* cache = GetSubsystem<ResourceCache>();
     Graphics* graphics = GetSubsystem<Graphics>();
-    Image* icon = cache->GetResource<Image>("Textures/UrhoIcon.png");
-    graphics->SetWindowIcon(icon);
-    graphics->SetWindowTitle("Urho3D Dinosaurs");
+
+	graphics->SetWindowTitle("Joshua Nixon | Dinosaur Arena");
 }
 
 void Sample::CreateConsoleAndDebugHud()

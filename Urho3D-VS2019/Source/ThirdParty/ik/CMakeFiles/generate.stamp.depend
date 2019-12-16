@@ -1,5 +1,0 @@
-# CMake generation dependency list for this directory.
-C:/Urho3D/Urho3D/Source/ThirdParty/ik/CMakeLists.txt
-C:/Urho3D/Urho3D/Source/ThirdParty/ik/include/ik/config.h.in
-C:/Urho3D/Urho3D/Source/ThirdParty/ik/include/ik/export.h.in
-D:/Program Files/CMake/share/cmake-3.15/Modules/CheckIncludeFiles.cmake

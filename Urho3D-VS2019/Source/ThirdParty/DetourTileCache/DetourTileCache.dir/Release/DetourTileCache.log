@@ -1,4 +1,0 @@
-﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/DetourTileCache/CMakeLists.txt
-  DetourTileCache.cpp
-  DetourTileCacheBuilder.cpp
-  DetourTileCache.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\DetourTileCache\Release\DetourTileCache.lib

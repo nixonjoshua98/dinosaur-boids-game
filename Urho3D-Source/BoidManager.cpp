@@ -72,11 +72,21 @@ void BoidManager::Update(float delta)
 	{
 		deltaTime = delta;
 
+		DestroyBoidsIfNeededed();
+
 		SpawnBoid(Max(1, delta * 500));
 
 		UpdateNeighbourMap();
 
 		currentFrame++;
+	}
+}
+
+void BoidManager::DestroyBoidsIfNeededed()
+{
+	for (int i = 0; i < numBoids; ++i)
+	{
+		boids[i]->DestroyIfNeeded();
 	}
 }
 
@@ -132,7 +142,7 @@ void BoidManager::UpdateThread(int threadID)
 
 				lock.unlock();
 
-				if (neighbours.size() <= 1 || !isRunning)
+				if (neighbours.size() == 0 || !isRunning)
 					continue;
 
 				boids[i]->ComputeForce(neighbours);

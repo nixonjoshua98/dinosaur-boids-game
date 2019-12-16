@@ -40,12 +40,16 @@ public:
 
 	bool IsEnabled();
 
+	void DestroyIfNeeded();
+
 	void Destroy();
 
 	Vector3 GetPosition();
 	Vector3 GetLinearVelocity();
 
 private:
+	bool isDestroyed = false;
+
 	Vector3 force;
 
 	Node* node;

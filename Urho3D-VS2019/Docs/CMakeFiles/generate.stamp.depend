@@ -1,5 +1,0 @@
-# CMake generation dependency list for this directory.
-C:/Urho3D/Urho3D/Docs/CMakeLists.txt
-D:/Program Files/CMake/share/cmake-3.15/Modules/FindDoxygen.cmake
-D:/Program Files/CMake/share/cmake-3.15/Modules/FindPackageHandleStandardArgs.cmake
-D:/Program Files/CMake/share/cmake-3.15/Modules/FindPackageMessage.cmake

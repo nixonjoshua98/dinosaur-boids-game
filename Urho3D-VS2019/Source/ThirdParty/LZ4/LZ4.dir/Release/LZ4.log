@@ -1,4 +1,0 @@
-﻿  Building Custom Rule C:/Urho3D/Urho3D/Source/ThirdParty/LZ4/CMakeLists.txt
-  lz4.c
-  lz4hc.c
-  LZ4.vcxproj -> C:\Urho3D\Urho3D-VS2019\Source\ThirdParty\LZ4\Release\LZ4.lib

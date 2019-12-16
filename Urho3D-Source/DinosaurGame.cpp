@@ -14,6 +14,11 @@
 #include <Urho3D/Graphics/AnimationController.h>
 #include <Urho3D/Graphics/StaticModel.h>
 
+#include <Urho3D/Graphics/ParticleEffect.h>
+#include <Urho3D/Graphics/ParticleEmitter.h>
+
+#include <Urho3D/Graphics/Skybox.h>
+
 #include <Urho3D/Input/Input.h>
 
 #include <Urho3D/Physics/PhysicsWorld.h>
@@ -31,6 +36,7 @@
 
 #include <Urho3D/IO/Log.h>
 
+#include <math.h>
 #include <string>
 
 #include "Character.h"
@@ -81,11 +87,147 @@ void DinosaurGame::Start()
 
 	SetupAndShowMainMenu();
 
-	AddConsole();
+	//AddConsole();
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
 
 	Sample::InitMouseMode(MM_ABSOLUTE);
+}
+
+void DinosaurGame::CreateGameBorder()
+{
+	borderNodes.clear();
+
+	CreateSkyBox();
+
+	Vector3 center = Vector3::ZERO;
+
+	const int NUM_OBJECTS	= 360;
+	const int RADIUS		= 256;
+	const float DEG2RAD		= (M_PI * 2) / 360.0f;
+
+	for (int i = 0; i < NUM_OBJECTS; ++i)
+	{
+		int angle = (360 / NUM_OBJECTS) * i;
+
+		Vector3 pos = Vector3::ZERO;
+
+		pos.x_ = center.x_ + RADIUS * std::sinf(angle * DEG2RAD);
+		pos.y_ = center.z_;
+		pos.z_ = center.y_ + RADIUS * std::cosf(angle * DEG2RAD);
+
+		Node* obj;
+
+		if (i % 2 == 0)
+		{
+			obj = CreateBox();
+
+			pos.y_ = 7.0f;
+
+			obj->SetPosition(pos);
+			obj->SetScale({ 8.8f, 5.0f, 8.8f });
+			obj->LookAt(Vector3::ZERO);
+
+			borderNodes.push_back(obj);
+		}
+
+		if (i % 3 == 0)
+		{
+			obj = CreateBox();
+
+			pos.y_ = 2.0f;
+
+			obj->SetPosition(pos);
+			obj->LookAt(Vector3::ZERO);
+
+			borderNodes.push_back(obj);
+		}
+
+		if (i % 5 == 0)
+		{
+			obj = CreateCharacterModel();
+
+			pos.y_ = 9.5f;
+
+			obj->SetPosition(pos);
+			obj->SetScale(5.0f);
+			obj->LookAt(Vector3::ZERO);
+
+			borderNodes.push_back(obj);
+		}
+	}
+}
+
+Node* DinosaurGame::CreateMushroom()
+{
+	ResourceCache* cache = GetSubsystem<ResourceCache>();
+
+	Node* node = scene_->CreateChild("Mushroom", LOCAL);
+
+	StaticModel* object		= node->CreateComponent<StaticModel>(LOCAL);
+	RigidBody* body			= node->CreateComponent<RigidBody>(LOCAL);
+	CollisionShape* shape	= node->CreateComponent<CollisionShape>(LOCAL);
+
+	node->SetRotation({ 0, 0, 0 });
+	node->SetScale(5.0f);
+
+	object->SetModel(cache->GetResource<Model>("Models/Mushroom.mdl"));
+	object->SetMaterial(cache->GetResource<Material>("Materials/Mushroom.xml"));
+
+	object->SetCastShadows(true);
+
+	body->SetCollisionLayer(2);
+
+	body->SetMass(0);
+
+	shape->SetTriangleMesh(object->GetModel(), 0);
+
+	return node;
+}
+
+Node* DinosaurGame::CreateBox()
+{
+	ResourceCache* cache = GetSubsystem<ResourceCache>();
+
+	Node* node = scene_->CreateChild("Box", LOCAL);
+
+	StaticModel* object = node->CreateComponent<StaticModel>(LOCAL);
+	RigidBody* body = node->CreateComponent<RigidBody>(LOCAL);
+	CollisionShape* shape = node->CreateComponent<CollisionShape>(LOCAL);
+
+	node->SetRotation({ 0, 0, 0 });
+	node->SetScale(5.0f);
+
+	object->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
+	object->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
+
+	object->SetCastShadows(true);
+
+	body->SetCollisionLayer(2);
+
+	body->SetMass(0);
+
+	shape->SetBox(Vector3::ONE);
+
+	return node;
+}
+
+Node* DinosaurGame::CreateCharacterModel()
+{
+	ResourceCache* cache = GetSubsystem<ResourceCache>();
+
+	Node* node = scene_->CreateChild("Player", LOCAL);
+	Node* adjustNode = node->CreateChild("AdjNode", LOCAL);
+
+	AnimatedModel* object = adjustNode->CreateComponent<AnimatedModel>(LOCAL);
+
+	adjustNode->SetRotation(Quaternion(180, Vector3(0, 1, 0)));
+
+	object->SetModel(cache->GetResource<Model>("Models/Mutant/Mutant.mdl"));
+	object->SetMaterial(cache->GetResource<Material>("Models/Mutant/Materials/mutant_M.xml"));
+	object->SetCastShadows(true);
+
+	return node;
 }
 
 void DinosaurGame::SubscribeToGameEvents()
@@ -285,6 +427,8 @@ void DinosaurGame::CreateScene_Client()
 	CreateCamera();
 	CreateLighting();
 	CreateFloor();
+
+	CreateGameBorder();
 }
 
 void DinosaurGame::CreateScene_Server()
@@ -297,6 +441,8 @@ void DinosaurGame::CreateScene_Server()
 	CreateZone(REPLICATED);
 	CreateLighting();
 	CreateFloor();
+
+	CreateGameBorder();
 }
 
 void DinosaurGame::SetupGame()
@@ -793,7 +939,7 @@ void DinosaurGame::GoToMainMenuFromGame(StringHash, VariantMap&)
 	gameoverWindow->Hide();
 	scoreWindow->Hide();
 	timeWindow->Hide();
-	controlsWindow->Toggle();
+	controlsWindow->Show();
 	weaponWindow->Hide();
 
 	mainMenu->Show();
@@ -817,6 +963,8 @@ void DinosaurGame::CreateOfflineScene()
 	CreateZone(LOCAL);
 	CreateLighting();
 	CreateFloor();
+
+	CreateGameBorder();
 }
 
 void DinosaurGame::UpdateFreeCamera(float deltaTime)
@@ -975,6 +1123,18 @@ void DinosaurGame::DisconnectFromServer()
 	}
 }
 
+void DinosaurGame::CreateSkyBox()
+{
+	ResourceCache* cache = GetSubsystem<ResourceCache>();
+
+	Node* skyNode = scene_->CreateChild("Sky");
+
+	Skybox* skybox = skyNode->CreateComponent<Skybox>();
+
+	skybox->SetModel(cache->GetResource<Model>("Models/Sphere.mdl"));
+	skybox->SetMaterial(cache->GetResource<Material>("Materials/Skybox.xml"));
+}
+
 void DinosaurGame::ProcessClientControls()
 {
 	Network* network = GetSubsystem<Network>();
@@ -1086,7 +1246,7 @@ void DinosaurGame::CheckCharacterCollisions(Character* chara)
 		{
 			boidsInCell[i]->Destroy();
 
-			chara->score--;
+			chara->score -= 5;
 		}
 	}
 }
@@ -1159,6 +1319,22 @@ Character* DinosaurGame::CreateCharacter()
 
 	Character* chara = charNode->CreateComponent<Character>(LOCAL);
 
+	// Particles
+
+	Node* particleNode = charNode->CreateChild("P", REPLICATED);
+
+	ParticleEmitter* emitter = particleNode->CreateComponent<ParticleEmitter>(REPLICATED);
+
+	emitter->SetEffect(cache->GetResource<ParticleEffect>("Particle/Dust.xml"));
+
+	ParticleEffect* effect = emitter->GetEffect();
+
+	effect->SetMinEmissionRate(3.f);
+	effect->SetMaxEmissionRate(5.f);
+
+	// | \\
+
+
 	charNode->SetPosition({ Random(-50.0f, 50.0f), 1.0f, Random(-50.0f, 50.0f) });
 
 	adjustNode->SetRotation(Quaternion(180, Vector3(0, 1, 0)));
@@ -1215,45 +1391,20 @@ void DinosaurGame::CreateScene(CreateMode scope)
 	scene_->CreateComponent<DebugRenderer>();
 }
 
-void DinosaurGame::CreateMushroom()
-{
-	ResourceCache* cache = GetSubsystem<ResourceCache>();
-
-	Node* node = scene_->CreateChild("Mushroom", REPLICATED);
-
-	StaticModel* object		= node->CreateComponent<StaticModel>(REPLICATED);
-	RigidBody* body			= node->CreateComponent<RigidBody>(REPLICATED);
-	CollisionShape* shape	= node->CreateComponent<CollisionShape>(REPLICATED);
-
-	node->SetPosition({ 5.0f, 0.0f, 5.0f });
-	node->SetRotation({ 0, 0, 0 });
-	node->SetScale(5.0f);
-
-	object->SetModel(cache->GetResource<Model>("Models/Mushroom.mdl"));
-	object->SetMaterial(cache->GetResource<Material>("Materials/Mushroom.xml"));
-
-	object->SetCastShadows(true);
-
-	body->SetCollisionLayer(2);
-	body->SetMass(0.0f);
-
-	shape->SetTriangleMesh(object->GetModel(), 0);
-}
-
 void DinosaurGame::CreateFloor()
 {
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
 
-	Node* floorNode = scene_->CreateChild("Floor", LOCAL);
-	StaticModel* model = floorNode->CreateComponent<StaticModel>(LOCAL);
-	RigidBody* body = floorNode->CreateComponent<RigidBody>(LOCAL);
-	CollisionShape* shape = floorNode->CreateComponent<CollisionShape>(LOCAL);
+	Node* floorNode			= scene_->CreateChild("Floor", LOCAL);
+	StaticModel* model		= floorNode->CreateComponent<StaticModel>(LOCAL);
+	RigidBody* body			= floorNode->CreateComponent<RigidBody>(LOCAL);
+	CollisionShape* shape	= floorNode->CreateComponent<CollisionShape>(LOCAL);
 
 	floorNode->SetPosition(Vector3(0.0f, -0.5f, 0.0f));
 	floorNode->SetScale(Vector3(FLOOR_SIZE, 1.0f, FLOOR_SIZE));
 
 	model->SetModel(cache->GetResource<Model>("Models/Box.mdl"));
-	model->SetMaterial(cache->GetResource<Material>("Materials/Stone.xml"));
+	model->SetMaterial(cache->GetResource<Material>("Materials/Terrain.xml"));
 
 	body->SetCollisionLayer(2);
 
