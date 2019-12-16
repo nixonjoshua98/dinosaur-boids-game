@@ -28,6 +28,10 @@
 
 #include <Urho3D/Resource/ResourceCache.h>
 
+#include <Urho3D/Audio/Sound.h>
+#include <Urho3D/Audio/Audio.h>
+#include <Urho3D/Audio/SoundSource3D.h>
+
 #include <Urho3D/Scene/Scene.h>
 
 #include <Urho3D/Network/Connection.h>
@@ -92,6 +96,15 @@ void DinosaurGame::Start()
 	GetSubsystem<Input>()->SetMouseVisible(true);
 
 	Sample::InitMouseMode(MM_ABSOLUTE);
+
+	CreateScene(REPLICATED);
+
+	StartMusic();
+
+	CreateFloor();
+	CreateLighting();
+	CreateCamera();
+	CreateGameBorder();
 }
 
 void DinosaurGame::CreateGameBorder()
@@ -421,20 +434,20 @@ void DinosaurGame::StartGame_Server()
 void DinosaurGame::CreateScene_Client()
 {
 	if (scene_ != nullptr)
-		scene_->Clear();
+		scene_->RemoveAllChildren();
 
-	CreateScene(LOCAL);
+	CreateScene(REPLICATED);
 	CreateCamera();
+
 	CreateLighting();
 	CreateFloor();
-
 	CreateGameBorder();
 }
 
 void DinosaurGame::CreateScene_Server()
 {
 	if (scene_ != nullptr)
-		scene_->Clear();
+		scene_->RemoveAllChildren();
 
 	CreateScene(REPLICATED);
 	CreateCamera();
@@ -532,6 +545,22 @@ void DinosaurGame::SubscribeToGameEvents_Server()
 	n->RegisterRemoteEvent(E_CLIENTSENDMESSAGE);
 	n->RegisterRemoteEvent(E_GAMEOVER);
 	n->RegisterRemoteEvent(E_CLIENTCHANGEWEAPON);
+}
+
+void DinosaurGame::StartMusic()
+{
+	ResourceCache* cache = GetSubsystem<ResourceCache>();
+	Audio* audio = GetSubsystem<Audio>();
+
+	Sound* music = cache->GetResource<Sound>("Music/Ninja Gods.ogg");
+
+	source = scene_->CreateComponent<SoundSource>(LOCAL);
+
+	music->SetLooped(true);
+
+	source->Play(music);
+
+	audio->SetMasterGain(SOUND_MUSIC, 0.3);
 }
 
 void DinosaurGame::UpdateControls_Client()
@@ -881,8 +910,6 @@ void DinosaurGame::MM_OfflinePlayBtnDown(StringHash, VariantMap&)
 {
 	networkRole = NetworkRole::OFFLINE;
 
-	CreateOfflineScene();
-
 	StartGame_Offline();
 }
 
@@ -934,7 +961,7 @@ void DinosaurGame::GoToMainMenuFromGame(StringHash, VariantMap&)
 
 	boids->Stop();
 
-	scene_->Clear();
+	scene_->RemoveAllChildren();
 
 	gameoverWindow->Hide();
 	scoreWindow->Hide();
@@ -945,6 +972,11 @@ void DinosaurGame::GoToMainMenuFromGame(StringHash, VariantMap&)
 	mainMenu->Show();
 
 	player = Player();
+
+	CreateFloor();
+	CreateLighting();
+	CreateCamera();
+	CreateGameBorder();
 }
 
 void DinosaurGame::UnsubscribeToGameEvents()
@@ -958,13 +990,17 @@ void DinosaurGame::UnsubscribeToGameEvents()
 
 void DinosaurGame::CreateOfflineScene()
 {
-	CreateScene(LOCAL);
+	CreateScene(REPLICATED);
 	CreateCamera();
 	CreateZone(LOCAL);
-	CreateLighting();
+	//CreateLighting();
 	CreateFloor();
 
-	CreateGameBorder();
+	//CreateGameBorder();
+}
+
+void DinosaurGame::ClearScene()
+{
 }
 
 void DinosaurGame::UpdateFreeCamera(float deltaTime)
@@ -1191,6 +1227,10 @@ void DinosaurGame::HandleCharacterAllocation(StringHash eventType, VariantMap& e
 	ToggleGamePause();
 
 	SubscribeToGameEvents_Client();
+
+	CreateLighting();
+	CreateFloor();
+	CreateGameBorder();
 }
 
 void DinosaurGame::HandleInterfaceUpdate_Client(StringHash eventType, VariantMap& eventData)
@@ -1332,9 +1372,6 @@ Character* DinosaurGame::CreateCharacter()
 	effect->SetMinEmissionRate(3.f);
 	effect->SetMaxEmissionRate(5.f);
 
-	// | \\
-
-
 	charNode->SetPosition({ Random(-50.0f, 50.0f), 1.0f, Random(-50.0f, 50.0f) });
 
 	adjustNode->SetRotation(Quaternion(180, Vector3(0, 1, 0)));
@@ -1384,11 +1421,15 @@ void DinosaurGame::CreateScene(CreateMode scope)
 {
 	ResourceCache* cache = GetSubsystem<ResourceCache>();
 
-	scene_ = new Scene(context_);
+	if (!isSceneCreated)
+	{
+		isSceneCreated = true;
 
-	scene_->CreateComponent<Octree>(scope);
-	scene_->CreateComponent<PhysicsWorld>(scope);
-	scene_->CreateComponent<DebugRenderer>();
+		scene_ = new Scene(context_);
+
+		scene_->CreateComponent<Octree>(scope);
+		scene_->CreateComponent<PhysicsWorld>(scope);
+	}
 }
 
 void DinosaurGame::CreateFloor()

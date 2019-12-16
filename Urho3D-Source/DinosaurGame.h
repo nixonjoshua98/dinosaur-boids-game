@@ -29,7 +29,7 @@ private:
 	enum class NetworkRole { CLIENT, SERVER, OFFLINE };
 	enum class CameraMode { FREE, SHOULDER };
 
-	const float GAME_TIMER = 31.f;
+	const float GAME_TIMER = 310.f;
 
 	struct ClientUI {
 		bool isUpdated	= false;
@@ -49,6 +49,8 @@ private:
 
 	std::vector<Node*> borderNodes;
 
+	SoundSource* source;
+
 	NetworkRole networkRole;
 	CameraMode cameraMode;
 
@@ -58,6 +60,8 @@ private:
 
 	float gameTimer = GAME_TIMER;
 
+	bool isSceneCreated = false;
+
 	void CreateGameBorder();
 
 	void SubscribeToGameEvents();
@@ -65,6 +69,8 @@ private:
 	void SubscribeToGameEvents_Client();
 	void SubscribeToGameEvents_Offline();
 	void SubscribeToGameEvents_Server();
+
+	void StartMusic();
 
 	void UpdateControls(Controls&);
 	void UpdateControls_Client();
@@ -151,6 +157,8 @@ private:
 
 	// Scenes
 	void CreateOfflineScene();
+
+	void ClearScene();
 
 	// Updates
 	void UpdateFreeCamera(float);
