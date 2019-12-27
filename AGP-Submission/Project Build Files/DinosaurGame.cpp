@@ -86,12 +86,10 @@ DinosaurGame::~DinosaurGame()
 void DinosaurGame::Start()
 {
 	Sample::Start();
-	
-	InitialiseInterface();
-
-	SetupAndShowMainMenu();
 
 	//AddConsole();
+
+	InitialiseInterface();
 
 	GetSubsystem<Input>()->SetMouseVisible(true);
 
@@ -105,6 +103,8 @@ void DinosaurGame::Start()
 	CreateLighting();
 	CreateCamera();
 	CreateGameBorder();
+
+	SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(DinosaurGame, SplashScreenUpdate));
 }
 
 void DinosaurGame::CreateGameBorder()
@@ -168,6 +168,21 @@ void DinosaurGame::CreateGameBorder()
 
 			borderNodes.push_back(obj);
 		}
+	}
+}
+
+void DinosaurGame::SplashScreenUpdate(StringHash, VariantMap& eventData)
+{
+	splashScreenTimer -= eventData[Update::P_TIMESTEP].GetFloat();
+
+	if (splashScreenTimer <= 0.0f)
+	{
+		controlsWindow->Show();
+		mainMenu->Show();
+
+		SetupAndShowMainMenu();
+
+		UnsubscribeFromEvent(E_UPDATE);
 	}
 }
 
@@ -882,6 +897,7 @@ void DinosaurGame::InitialiseInterface()
 	debugWindow->Hide();
 	gameoverWindow->Hide();
 	weaponWindow->Hide();
+	mainMenu->Hide();
 	timeWindow->Hide();
 
 	controlsWindow->Show();

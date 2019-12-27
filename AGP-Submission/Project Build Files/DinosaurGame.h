@@ -29,7 +29,7 @@ private:
 	enum class NetworkRole { CLIENT, SERVER, OFFLINE };
 	enum class CameraMode { FREE, SHOULDER };
 
-	const float GAME_TIMER = 310.f;
+	const float GAME_TIMER = 31.f;
 
 	struct ClientUI {
 		bool isUpdated	= false;
@@ -54,7 +54,9 @@ private:
 	NetworkRole networkRole;
 	CameraMode cameraMode;
 
-	const unsigned int SERVER_PORT	= 2345;
+	const unsigned int SERVER_PORT = 2345;
+
+	float splashScreenTimer = 3.0f;
 
 	float menuTimer	= 0.5f;
 
@@ -63,6 +65,8 @@ private:
 	bool isSceneCreated = false;
 
 	void CreateGameBorder();
+
+	void SplashScreenUpdate(StringHash, VariantMap& eventData);
 
 	void SubscribeToGameEvents();
 	void SubscribeToNetworkEvents_Client();
