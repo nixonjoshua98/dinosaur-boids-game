@@ -1,4 +1,4 @@
-LAN shooter with boid simulation + optimisations
+LAN Shooter with Boid Simulation + Optimisations
 -
 Built for the **Advaned Games Computing** module.
 
